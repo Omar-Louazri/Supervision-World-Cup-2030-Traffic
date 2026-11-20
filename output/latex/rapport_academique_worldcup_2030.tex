@@ -1,0 +1,385 @@
+% !TeX program = pdflatex
+% Compiler deux fois avec pdflatex en conservant le dossier logos voisin.
+% Les deux images officielles et leur provenance sont incluses dans le dossier logos.
+% Les identités sont regroupées ci-dessous pour faciliter les corrections.
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{charter}
+\usepackage[scale=.91]{tgheros}
+\usepackage{courier}
+\usepackage{amsmath,amssymb}
+\usepackage[a4paper,left=19mm,right=19mm,top=20mm,bottom=18mm,headheight=22pt,headsep=6mm,footskip=9mm]{geometry}
+\usepackage{microtype}
+\usepackage[table]{xcolor}
+\usepackage{array,tabularx}
+\usepackage{graphicx}
+\graphicspath{{logos/}{output/latex/logos/}}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+\usepackage{fancyhdr,lastpage}
+\usepackage{fancyvrb}
+\usepackage{titlesec}
+\usepackage{xurl}
+\usepackage{hyperref}
+\definecolor{navy}{HTML}{142D45}
+\definecolor{wine}{HTML}{8B3541}
+\definecolor{pale}{HTML}{F3F5F7}
+\definecolor{border}{HTML}{D7DEE4}
+\definecolor{muted}{HTML}{61717D}
+\newcommand{\AuteursRapport}{Omar Louazri\\Aymane Bouhou}
+\newcommand{\EncadrantRapport}{Pr. Abderrahim El Qadi}
+\newcommand{\EtablissementRapport}{}
+\newcommand{\FiliereRapport}{}
+\hypersetup{pdftitle={Supervision World Cup 2030 Traffic},
+ pdfauthor={Omar Louazri et Aymane Bouhou},
+ pdfsubject={Architecture de flux, H3, Kafka, Spark, Redis et supervision 3D},
+ colorlinks=true,linkcolor=navy,urlcolor=wine,citecolor=wine,
+ bookmarksnumbered=true,pdfstartview=FitH}
+\urlstyle{same}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\linespread{1.005}
+\setlength{\emergencystretch}{1.6em}
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.25}
+\arrayrulecolor{border}
+\titleformat{\section}{\sffamily\bfseries\color{navy}\fontsize{19}{23}\selectfont}{\color{wine}\fontsize{25}{27}\selectfont\thesection}{.65em}{}
+\titleformat{\subsection}{\sffamily\bfseries\color{navy}\normalsize}{\color{wine}\thesubsection}{.65em}{}
+\titlespacing*{\section}{0pt}{0pt}{14pt}
+\titlespacing*{\subsection}{0pt}{10pt}{5pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\fontsize{8}{10}\selectfont\color{navy}\textbf{WORLD CUP 2030}\quad\color{muted}SUPERVISION DES FLUX}
+\fancyhead[R]{\sffamily\fontsize{8}{10}\selectfont\color{wine}MINI-PROJET 15}
+\fancyfoot[L]{\sffamily\fontsize{8}{10}\selectfont\color{muted}Data Engineering et Intelligence Artificielle}
+\fancyfoot[R]{\sffamily\fontsize{9}{11}\selectfont\color{navy}\textbf{\thepage}\, / \,\pageref*{LastPage}}
+\renewcommand{\headrulewidth}{.35pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{border}\leaders\hrule height\headrulewidth\hfill}}
+\fancypagestyle{cover}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}\fancyfoot[L]{\sffamily\fontsize{8}{10}\selectfont\color{muted}Rapport académique\quad Novembre 2026}}
+\newcommand{\reportcaption}[1]{\par\vspace{2pt}{\sffamily\fontsize{8.5}{10.5}\selectfont\color{muted}#1\par}\vspace{3pt}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\reporttablebegin}{\par\vspace{4pt}\begingroup\setlength{\parskip}{0pt}\renewcommand{\arraystretch}{1.4}\setlength{\extrarowheight}{3pt}\sffamily\fontsize{9}{11.4}\selectfont\rowcolors{2}{white}{pale}}
+\newcommand{\reporttableend}{\endgroup\par\vspace{5pt}}
+\newcommand{\tocentry}[2]{\hyperref[sec:#1]{#2}\hfill\textcolor{wine}{\pageref{sec:#1}}\par}
+\begin{document}
+\thispagestyle{cover}
+\begin{tikzpicture}[remember picture,overlay]
+\fill[navy] (current page.north west) rectangle ([yshift=-9mm]current page.north east);
+\fill[wine] ([xshift=19mm,yshift=-9mm]current page.north west) rectangle ++(24mm,-1.3mm);
+% Images originales sans modification. Le cadrage ENSAM isole le losange
+% dans l'en-tête institutionnel composite publié par l'école.
+\node[anchor=north west,inner sep=0pt] at
+ ([xshift=19mm,yshift=-20mm]current page.north west)
+ {\href{https://www.um5.ac.ma/um5/node/UM5logo}{\includegraphics[width=65mm]{um5-rabat-officiel.png}}};
+\node[anchor=north east,inner sep=0pt] at
+ ([xshift=-19mm,yshift=-16mm]current page.north east)
+ {\href{https://ensam.um5.ac.ma/}{\includegraphics[height=27mm,trim=65bp 260bp 875bp 18bp,clip]{ensam-rabat-officiel.png}}};
+\end{tikzpicture}
+\vspace*{15mm}
+{\sffamily\fontsize{10}{13}\selectfont\color{navy}\EtablissementRapport\par}
+{\sffamily\small\color{muted}\FiliereRapport\par}
+\vspace{8mm}
+{\sffamily\bfseries\fontsize{9}{12}\selectfont\color{wine}RAPPORT ACADÉMIQUE\quad / \quad MINI-PROJET 15\par}
+\vspace{5mm}
+{\sffamily\bfseries\color{navy}\fontsize{31}{35}\selectfont Supervision World Cup\\2030 Traffic\par}
+\vspace{4mm}
+{\sffamily\fontsize{12}{16}\selectfont\color{muted}Supervision spatio-temporelle des transports\\et des capacités hôtelières au Maroc\par}
+\vspace{4mm}
+{\sffamily\fontsize{8.8}{12}\selectfont\color{navy}Kafka\quad / \quad Spark Structured Streaming\quad / \quad Uber H3\\Redis\quad / \quad Dash\quad / \quad Mapbox 3D\par}
+\vspace{7mm}
+\begin{minipage}[t]{.51\linewidth}
+{\sffamily\bfseries\fontsize{8}{11}\selectfont\color{wine}RÉALISÉ PAR\par}
+\vspace{2mm}
+{\sffamily\fontsize{11}{15}\selectfont\color{navy}\AuteursRapport\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{.44\linewidth}
+{\sffamily\bfseries\fontsize{8}{11}\selectfont\color{wine}ENCADRÉ PAR\par}
+\vspace{2mm}
+{\sffamily\fontsize{11}{15}\selectfont\color{navy}\EncadrantRapport\par}
+\end{minipage}
+\par\vspace{8mm}
+{\sffamily\bfseries\fontsize{11}{14}\selectfont\color{navy}Résumé\par}
+\vspace{1mm}
+{\fontsize{10}{13}\selectfont
+Ce rapport présente une plateforme de supervision des flux de supporters et de la tension hôtelière dans les villes hôtes marocaines. Kafka assure l'ingestion, Spark calcule les agrégats temporels et H3, Redis expose l'état récent, et Dash avec Mapbox fournit une carte 3D et des alertes. L'analyse du dépôt distingue les fonctions réalisées des objectifs à valider. Les données de capacité et de navettes sont synthétiques ; la prévision reste une référence linéaire. Le raccordement réel à Al Boraq, la commande automatique de flotte et le débit de 50\,000 événements par seconde ne sont pas démontrés. Le rapport précise les indicateurs, les garanties de reprise et le protocole expérimental nécessaire à leur validation.
+\par}
+\vspace{3mm}
+{\sffamily\bfseries\fontsize{11}{14}\selectfont\color{navy}Sommaire\par}
+\vspace{2mm}
+\begin{minipage}[t]{.48\linewidth}
+\sffamily\fontsize{8.2}{12}\selectfont\setlength{\parskip}{3pt}
+\tocentry{1}{01\quad Introduction et exigences}
+\tocentry{2}{02\quad Architecture et technologies}
+\tocentry{3}{03\quad Données et ingestion Kafka}
+\tocentry{4}{04\quad Traitement temporel et H3}
+\tocentry{5}{05\quad Indicateurs et décision}
+\end{minipage}\hfill
+\begin{minipage}[t]{.46\linewidth}
+\sffamily\fontsize{8.2}{12}\selectfont\setlength{\parskip}{3pt}
+\tocentry{6}{06\quad Redis et interface 3D}
+\tocentry{7}{07\quad Déploiement et fiabilité}
+\tocentry{8}{08\quad Validation et charge}
+\tocentry{9}{09\quad Conclusion et références}
+\end{minipage}
+\clearpage
+\section{Introduction et analyse des exigences}\label{sec:1}
+\subsection{Contexte et problématique}
+Un jour de match concentre les déplacements dans un temps court et dans des espaces contraints : gares, stations, accès routiers et portes des stades. La tension peut se déplacer d'un maillon à l'autre. Une amélioration locale des entrées ne garantit donc pas une amélioration du parcours complet. Les hébergements ajoutent une contrainte distincte, car leur disponibilité influence les destinations et la répartition des déplacements. Le cahier des charges demande une vision commune de ces phénomènes \cite{ref1}.
+\par
+La problématique retenue est la suivante : comment convertir des flux hétérogènes et potentiellement désordonnés en une représentation spatiale actualisée, capable de signaler une pression excessive et de soutenir une décision de réorientation ? La solution doit préserver le sens des indicateurs, tolérer les doublons et les retards, et fournir une preuve expérimentale de sa capacité d'ingestion.
+\par
+\subsection{Périmètre et démarche}
+La démarche associe l'analyse des exigences, la lecture du code, la définition mathématique des indicateurs et la préparation d'un protocole de validation. Les fichiers du dépôt constituent la preuve de réalisation ; les documentations officielles expliquent les mécanismes employés. Une vérification fonctionnelle limitée confirme les exemples H3 et de calcul présentés. Aucun test de charge complet n'a été exécuté pour produire ce rapport. Les jeux de démonstration couvrent Casablanca et Rabat, sans prétendre représenter l'ensemble des villes hôtes \cite{ref2}.
+\par
+\reporttablebegin
+\begin{tabular}{|>{\raggedright\arraybackslash}m{\dimexpr 0.400\linewidth-2\tabcolsep-1.500\arrayrulewidth\relax}|>{\raggedright\arraybackslash}m{\dimexpr 0.600\linewidth-2\tabcolsep-1.500\arrayrulewidth\relax}|}
+\hline\rowcolor{navy}
+\color{white}\bfseries Exigence du cahier des charges & \color{white}\bfseries Réponse et niveau de réalisation\\\hline
+Déplacements massifs et topics imposés & Producteur Python et topics stadium-access / transit-validations présents.\\\hline
+Découpage spatial et goulots & H3 et comptes par fenêtre présents ; capacités locales à étalonner.\\\hline
+Tension hôtelière et prédiction & Instantanés dédiés et extrapolation simple présents ; validation historique à réaliser.\\\hline
+Redis et carte Dash Mapbox 3D & Stockage récent et extrusions H3 présents ; affichage cartographique avec jeton.\\\hline
+Réorientation automatique & Recommandations simulées présentes ; commande réelle de flotte à développer.\\\hline
+Ingestion à 50 000 événements/s & Générateur et outil de charge présents ; débit cible non démontré.\\\hline
+\end{tabular}
+\reporttableend
+\reportcaption{Tableau 1 - Correspondance entre les exigences et les éléments observés dans le dépôt.}
+\subsection{Critères de réussite}
+La réussite doit réunir quatre preuves : exactitude des comptes sur un jeu connu, fraîcheur compatible avec la supervision, maintien du débit pendant une charge soutenue et traçabilité des décisions. La seule présence d'une carte ou d'un script de simulation ne suffit pas. Pour le volet hôtelier, l'absence de données doit apparaître comme une information manquante, jamais comme une disponibilité nulle ou une absence de tension.
+\par
+
+\clearpage
+\section{Architecture et choix technologiques}\label{sec:2}
+\subsection{Chaîne de traitement}
+La plateforme suit une architecture de flux avec une couche de service en mémoire. Le producteur simule les mouvements ; Kafka conserve les messages ; Spark les contrôle et calcule les contributions aux fenêtres ; Redis expose les états récents ; Dash les présente aux opérateurs. Les rejets suivent une branche indépendante. Les checkpoints permettent à Spark de retrouver sa progression après un arrêt \cite{ref2}.
+\par
+
+\begin{center}
+\begin{tikzpicture}[
+ unit/.style={draw=border,fill=pale,rounded corners=1pt,
+   minimum width=4.6cm,minimum height=1.5cm,align=center,
+   inner sep=4pt,font=\sffamily\small},
+ flow/.style={-{Stealth[length=2mm]},draw=wine,thick}]
+\node[unit] (sources) at (0,0) {\textbf{Sources Python}\\[4pt]\scriptsize stades · transports · hôtels};
+\node[unit] (kafka) at (5.8,0) {\textbf{Kafka}\\[4pt]\scriptsize topics métier et offsets};
+\node[unit] (spark) at (11.6,0) {\textbf{Spark et H3}\\[4pt]\scriptsize validation · fenêtres · agrégats};
+\node[unit] (invalid) at (0,-2.8) {\textbf{worldcup-invalid}\\[4pt]\scriptsize motifs de rejet dans Kafka};
+\node[unit] (dash) at (5.8,-2.8) {\textbf{Dash et Mapbox}\\[4pt]\scriptsize carte 3D · alertes · navettes};
+\node[unit] (redis) at (11.6,-2.8) {\textbf{Redis}\\[4pt]\scriptsize état récent · scripts Lua};
+\draw[flow] (sources)--(kafka);
+\draw[flow] (kafka)--(spark);
+\draw[flow] (spark)--(redis);
+\draw[flow] (redis)--(dash);
+\draw[flow,dashed,draw=muted] (spark.south west)--(invalid.north east);
+\end{tikzpicture}
+\end{center}
+\reportcaption{Figure 1 - Architecture du démonstrateur issue de la lecture du dépôt. Les sources réelles et les commandes de flotte restent des extensions.}
+\subsection{Justification des choix}
+Kafka découple les vitesses de production et de traitement. Ses partitions permettent de distribuer la lecture et ses offsets rendent une relecture contrôlée possible \cite{ref3}. Spark fournit une API DataFrame commune aux traitements par lot et aux micro-lots. Dans le prototype, les calculs métier sont effectués dans {\small\ttfamily foreachBatch}, puis écrits vers Redis. H3 donne une clé spatiale stable pour regrouper les événements proches. Ce choix limite les jointures géométriques répétées sur le chemin principal.
+\par
+Redis sert les agrégats sans interroger Kafka depuis le tableau de bord. Dash organise les filtres et les indicateurs, tandis que Mapbox GL JS affiche les polygones extrudés. Le navigateur reçoit ainsi des synthèses plutôt que chaque déplacement. Cette séparation facilite l'évolution de la visualisation sans modifier les contrats d'ingestion. Elle introduit néanmoins plusieurs points de panne et impose de mesurer chaque segment de latence.
+\par
+\subsection{Frontières du démonstrateur}
+Le référentiel contient des villes, des débits admissibles et des navettes fictives. Les validations de transport ne sont pas rattachées à un service Al Boraq réel : aucune capacité de rame, aucun horaire ni taux de remplissage officiel ne sont disponibles dans ce flux. Le suivi ferroviaire opérationnel demanderait des identifiants de ligne, de train, de station et de course, ainsi que les montées, descentes et capacités associées. Le raccordement routier annexe et la présentation Three.js du dépôt ne remplacent pas ces informations.
+\par
+Un stockage historique durable, par exemple en fichiers Parquet partitionnés, est proposé en complément pour rejouer les incidents et évaluer les modèles. Il n'est pas fourni par l'expiration Redis. Cette extension sépare la supervision immédiate de l'analyse rétrospective, sans alourdir les lectures de l'interface.
+\par
+
+\clearpage
+\section{Contrats de données et ingestion Kafka}\label{sec:3}
+\subsection{Événement de déplacement}
+Le JSON fourni dans le sujet décrit une observation ponctuelle. Le contrat du démonstrateur conserve ses champs et ajoute {\small\ttfamily event\_\allowbreak{}id}, {\small\ttfamily schema\_\allowbreak{}version} et {\small\ttfamily source}. Le premier doit rester stable lors d'un renvoi ; les deux autres permettent de valider le format et sa cohérence avec le topic. L'exemple suivant reprend le scénario du sujet avec ces ajouts \cite{ref1,ref2}.
+\par
+\begin{Verbatim}[fontsize=\footnotesize,baselinestretch=1.05]
+{
+  "event_id": "EVT-000001", "schema_version": 1,
+  "source": "stadium_access", "fan_id": "FAN-88301",
+  "city": "Casablanca", "venue": "Grand Stade de Benslimane",
+  "lat": 33.612, "lon": -7.135,
+  "timestamp": "2030-06-15T16:30:00Z",
+  "action": "gate_checkin"
+}
+\end{Verbatim}
+Les coordonnées sont exprimées en WGS84. Le lecteur Spark attend ici un horodatage UTC à la seconde terminé par Z. Un accès au stade exige un lieu et l'action {\small\ttfamily gate\_\allowbreak{}checkin} ; une validation de transport utilise la source et l'action {\small\ttfamily transit\_\allowbreak{}validation}. Un identifiant de supporter peut exister en entrée, mais il n'entre ni dans les agrégats Redis ni dans la carte.
+\par
+\subsection{Topics et contrôles de qualité}
+\reporttablebegin
+\begin{tabular}{|>{\raggedright\arraybackslash}m{\dimexpr 0.310\linewidth-2\tabcolsep-1.500\arrayrulewidth\relax}|>{\raggedright\arraybackslash}m{\dimexpr 0.690\linewidth-2\tabcolsep-1.500\arrayrulewidth\relax}|}
+\hline\rowcolor{navy}
+\color{white}\bfseries Topic & \color{white}\bfseries Contenu et contrôle principal\\\hline
+stadium-access & Accès aux stades ; lieu requis et action autorisée.\\\hline
+transit-validations & Validations de transport ; cohérence source et topic.\\\hline
+hotel-occupancy & Instantanés agrégés de chambres occupées et disponibles.\\\hline
+worldcup-invalid & Rejets avec topic, partition, offset et motif de validation.\\\hline
+\end{tabular}
+\reporttableend
+\reportcaption{Tableau 2 - Répartition des messages entre les topics métier et le flux de rejet.}
+Spark vérifie la version du schéma, la ville, les champs requis, les bornes des coordonnées, l'action et l'horodatage. Les rejets sont localisables par partition et offset. Le flux hôtelier impose des comptes entiers non négatifs et un total strictement positif. Son identifiant d'instantané est distinct de celui d'un déplacement ; ces deux sémantiques ne doivent pas être mélangées.
+\par
+\subsection{Génération et fiabilité de publication}
+Le script {\small\ttfamily worldcup\_\allowbreak{}event\_\allowbreak{}producer.\allowbreak{}py} accepte un nombre d'événements, un débit cible, une graine et un identifiant d'exécution. Il fonctionne vers Kafka ou en sortie standard. Le client Kafka active l'idempotence, attend les acquittements des réplicas synchronisés et utilise LZ4 avec un délai de regroupement de 20 ms. Ces réglages fiabilisent la publication ; ils ne garantissent pas à eux seuls l'unicité dans toute la chaîne. Un profil de vagues avant et après match et une injection explicite d'erreurs sont des extensions nécessaires aux essais réalistes.
+\par
+
+\clearpage
+\section{Traitement temporel et indexation H3}\label{sec:4}
+\subsection{Temps événementiel et retard}
+La supervision doit dater l'observation avec son horodatage métier, et non avec l'heure d'arrivée au serveur. Le compromis entre exactitude, délai de publication et coût de conservation de l'état est un problème classique du traitement de flux \cite{ref10}. Le démonstrateur utilise une fenêtre de 60 secondes glissant toutes les 10 secondes. Un même événement appartient donc à six fenêtres ; additionner ces fenêtres produirait un surcomptage.
+\par
+
+\begin{center}
+\begin{tikzpicture}[x=.15cm,y=.6cm,font=\sffamily\footnotesize]
+\foreach \n/\start/\shade in {1/0/15,2/10/25,3/20/35}{
+  \pgfmathsetmacro{\yy}{1-\n}
+  \node[anchor=east] at (-4,\yy+.22) {Fenêtre \n};
+  \fill[navy!\shade] (\start,\yy) rectangle +(60,.6);
+  \pgfmathtruncatemacro{\finish}{\start+60}
+  \node[anchor=west] at (\start+1,\yy+.3) {\start~s à \finish~s};
+}
+\draw[dashed,navy,thick] (35,-2.2)--(35,.9);
+\end{tikzpicture}
+\end{center}
+\reportcaption{Figure 2 - Trois fenêtres parmi les six pouvant contenir un événement observé à la seconde 35. Les fenêtres sont semi-ouvertes.}
+La déduplication par {\small\ttfamily event\_\allowbreak{}id} repose sur un watermark de deux minutes. Ce seuil suit la progression du temps événementiel maximal observé ; il ne représente pas un délai fixe depuis l'horloge du serveur. La conservation des identifiants est bornée et la garantie ne couvre pas tout doublon arbitrairement tardif. Des métriques spécifiques doivent distinguer les rejets de schéma et les données écartées par les opérateurs temporels \cite{ref2,ref4}.
+\par
+\subsection{Projection et granularité spatiale}
+La fonction Python {\small\ttfamily h3.\allowbreak{}latlng\_\allowbreak{}to\_\allowbreak{}cell(lat, lon, resolution)} transforme une position en identifiant H3. Avec les coordonnées du sujet et la résolution 8, le résultat vérifié est {\small\ttfamily 8839abdb55fffff}. Cette résolution est la valeur initiale du dépôt. Les superficies moyennes des hexagones sont d'environ 0,737 km\textsuperscript{2} à la résolution 8 et 0,105 km\textsuperscript{2} à la résolution 9 ; les superficies réelles varient selon la position \cite{ref5}. Une résolution plus fine doit être justifiée par la précision des capteurs et le coût de calcul.
+\par
+\[N(h,w,s)=\sum_{e\in E_{\mathrm{uniques}}}\mathbf{1}\{h(e)=h,\ t(e)\in w,\ s(e)=s\}.\]
+Ici, $N(h,w,s)$ compte les événements uniques de source $s$ dans la cellule $h$ et la fenêtre $w$.
+
+\[D(h,w,s)=\frac{N(h,w,s)}{A(h)}.\]
+A(h) désigne la surface réelle de la cellule en km\textsuperscript{2}. D exprime une intensité d'événements par km\textsuperscript{2} sur la fenêtre, pas une densité instantanée de personnes. Le code publie actuellement N ; la normalisation surfacique est une amélioration proposée. H3 satisfait le choix H3 / S2 du sujet ; aucun second index S2 n'est implémenté.
+\par
+\subsection{Agrégation incrémentale}
+Après déduplication, chaque micro-lot calcule les contributions par cellule et par lieu, source et fenêtre. Redis additionne ces deltas pour constituer les comptes complets. Le compteur de progression n'augmente qu'une fois par événement traité, indépendamment des six fenêtres et des deux niveaux d'agrégation. Les comptes restent provisoires pendant l'arrivée de données retardées. Le coût des redistributions Spark, de la fonction H3 Python et des écritures Redis devra être observé sous charge.
+\par
+
+\clearpage
+\section{Indicateurs et aide à la décision}\label{sec:5}
+\subsection{Pression et détection des goulots}
+Un compte de passages ne mesure pas directement l'occupation d'un stade ou d'un train. Le prototype compare un flux observé à un débit admissible du référentiel. Pour une fenêtre de durée \(\Delta\) secondes et une capacité C exprimée en événements par minute, une définition cohérente est :
+\par
+\[P(w)=\frac{N(w)}{C\times\Delta/60}.\]
+Le réglage actuel de 60 secondes autorise la division directe par C utilisée dans Redis. Changer la durée exige d'adapter la capacité ; le code ne réalise pas encore cette conversion générale. Les capacités ne sont attachées qu'aux agrégats de lieux reconnus, pas aux cellules H3. Une capacité inconnue donne une pression inconnue. Avec N = 1 620 et C = 1 800 par minute, P vaut 90 \% : cet exemple est illustratif et ne mesure aucun stade réel \cite{ref2}.
+\par
+L'alerte entre en état actif à partir de 85 \% et reste active tant que P reste au moins égal à 65 \%. Cette hystérésis réduit les oscillations. Elle signale une tension au lieu ; établir un véritable goulot spatial demande aussi les files d'attente, la capacité des accès et les conditions des zones voisines. L'état d'alerte est aujourd'hui conservé dans la session de l'interface ; un service central est nécessaire pour une décision partagée.
+\par
+\subsection{Prévision à court terme}
+La fonction de prévision prend les deux ou trois dernières fenêtres distinctes, estime une pente moyenne et extrapole la suivante. Pour k valeurs x\textsubscript{1} à x\textsubscript{k}, le principe est :
+\par
+\[\widehat{x}_{k+1}=\max\!\left(0,\operatorname{arrondi}\!\left[x_k+\frac{x_k-x_1}{k-1}\right]\right).\]
+La série illustrative 1 200, 1 320, 1 440 donne ainsi 1 560 événements, résultat vérifié avec la fonction du dépôt. Il s'agit d'une référence linéaire, sans apprentissage ni validation historique. Une évaluation rigoureuse séparera les matchs d'entraînement et de test, comparera la persistance à la tendance, puis mesurera l'erreur absolue moyenne et le rappel des épisodes critiques. Les fenêtres se recouvrant, un découpage aléatoire créerait une fuite d'information.
+\par
+\subsection{Hôtellerie et réorientation des navettes}
+Pour les hôtels, le taux est O = chambres occupées / (occupées + disponibles). Les instantanés sont datés et signalés comme périmés après cinq minutes ; ils ne sont jamais déduits des passages aux portiques. Pour les navettes, le prototype retient l'itinéraire admissible maximisant les places disponibles divisées par la durée du trajet. Dans le référentiel fictif de Casablanca, A offre 400/18 \(\approx\) 22,2 places par minute contre 250/12 \(\approx\) 20,8 pour B : A est recommandée.
+\par
+Cette recommandation porte le statut de simulation. La réorientation automatique demandée suppose ensuite un moteur central, des capacités de flotte actualisées, un contrôle des voies, une commande idempotente avec accusé de réception et un retour d'état. L'optimisation devra vérifier que la déviation ne sature pas la destination ou un autre tronçon. Ces fonctions complètent l'aide à la décision déjà présente.
+\par
+
+\clearpage
+\section{Redis et interface cartographique}\label{sec:6}
+\subsection{Modélisation de l'état en mémoire}
+Les clés Redis utilisent le préfixe {\small\ttfamily wc:v1}. Un agrégat est identifié par son niveau, sa ville, son lieu, sa source, sa cellule et le début de fenêtre. Le stockage contient le compte, la capacité éventuelle, la pression, le statut de qualité et les horodatages. Des index triés rendent les fenêtres récentes accessibles ; les hôtels conservent leur dernier instantané par zone. Le TTL des états est de 900 secondes par défaut \cite{ref2}.
+\par
+Un script Lua associe atomiquement un marqueur de micro-lot à l'incrémentation de chaque agrégat. Une réexécution proche retrouve ce marqueur et évite le double ajout. La durée du marqueur est au moins une heure, ou quatre fois le TTL si cette valeur est supérieure. Une panne longue dépassant cette rétention ne bénéficie donc pas d'une déduplication illimitée. Les écritures de plusieurs agrégats ne constituent pas non plus une transaction globale : un lecteur peut voir un micro-lot partiellement publié.
+\par
+Les lectures utilisent des pipelines Redis pour regrouper les demandes et réduire les allers-retours réseau \cite{ref6}. Le TTL borne l'état récent, mais ne remplace pas un historique durable. La reconstruction après une perte de Redis doit rejouer les données avec une stratégie cohérente de checkpoints et d'identifiants, puis vérifier les comptes avant de réouvrir la supervision.
+\par
+\subsection{Carte de chaleur par extrusions H3}
+L'application Dash interroge Redis toutes les dix secondes. Elle filtre les cellules et les lieux par ville, produit un GeoJSON et transmet les polygones à Mapbox. La conversion ferme chaque anneau et inverse correctement les couples H3 latitude/longitude en coordonnées GeoJSON longitude/latitude. Les callbacks périodiques correspondent au mécanisme de mise à jour documenté de Dash \cite{ref7}.
+\par
+La couche {\small\ttfamily fill-extrusion} de Mapbox représente les cellules en volumes \cite{ref8}. Dans le code, la hauteur suit min(800, 8 + 8N) et la couleur suit le compte d'événements. Cette hauteur est une échelle graphique, sans signification physique de bâtiment ou de foule. La carte visualise donc l'intensité des passages, tandis que les cartes d'indicateurs présentent la pression lorsque la capacité est connue. Un jeton Mapbox valide est nécessaire à l'affichage.
+\par
+\subsection{Lecture opérationnelle et fraîcheur}
+L'écran associe carte, volumes par source, alertes, prévision élémentaire, état hôtelier et recommandation motivée. L'heure de dernière mise à jour et les erreurs Redis aident à interpréter les résultats. Les filtres par match et par période, ainsi qu'une série historique complète, restent à développer. Le jeton cartographique public doit être limité aux domaines autorisés ; les secrets serveur doivent rester hors du navigateur.
+\par
+La cadence de dix secondes de Dash s'ajoute à l'attente du micro-lot et au temps de calcul. Avec un déclenchement Spark également fixé à dix secondes, une latence sous la seconde ne peut pas être déduite de l'usage de Redis. La mesure doit porter sur le trajet complet jusqu'au rendu effectif, en incluant les rafraîchissements et les éventuelles données périmées.
+\par
+
+\clearpage
+\section{Déploiement et fiabilité}\label{sec:7}
+\subsection{Déploiement reproductible}
+L'environnement déclaré repose sur Python 3.10 à 3.13, Spark 4.0.1, Java 17 ou 21 et Docker Compose. Le fichier Compose déclare un broker Kafka et Redis avec persistance AOF et volume de données. Les processus Python s'exécutent séparément. Le script de création initialise par défaut six partitions par topic avec un facteur de réplication égal à un. Il s'agit d'un environnement de démonstration, sans haute disponibilité \cite{ref2}.
+\par
+\begin{Verbatim}[fontsize=\footnotesize,baselinestretch=1.05]
+uv sync
+docker compose up -d
+uv run python scripts/create_topics.py
+# Connecteur Kafka requis avant le lancement Spark
+export PYSPARK_SUBMIT_ARGS="--packages \
+org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.1 pyspark-shell"
+uv run python spark_worldcup_traffic.py
+# Dans deux autres terminaux avec le même environnement
+uv run python app_worldcup_control.py
+uv run python worldcup_event_producer.py --count 10000 --rate 500
+\end{Verbatim}
+Ces commandes constituent la procédure du dépôt adaptée à Bash ; elles ne décrivent pas une nouvelle exécution mesurée. Les variables Kafka, Redis et Mapbox doivent être définies avant le démarrage. Le fichier .env n'est pas chargé automatiquement par les scripts Python. Lors du premier lancement continu, Spark doit précéder le producteur car la lecture commence aux derniers offsets. Le mode {\small\ttfamily --available-now} permet une relecture initiale depuis les offsets disponibles avec un checkpoint neuf.
+\par
+\subsection{Reprise et garanties de traitement}
+Trois checkpoints distincts suivent les événements de foule, les instantanés hôteliers et les rejets. Ils doivent être conservés sur un stockage fiable. Le mécanisme {\small\ttfamily foreachBatch} est au moins une fois par défaut ; la maîtrise des doublons de sortie dépend de la destination \cite{ref4}. Les marqueurs Redis renforcent l'idempotence dans une rétention bornée. Le rapport ne revendique donc pas une garantie universelle de traitement exactement une fois.
+\par
+Une panne après quelques écritures puis avant le compteur de progression doit être testée explicitement. Au redémarrage, les agrégats déjà écrits doivent rester stables et les autres être complétés. Il faut également tester l'expiration des marqueurs, une perte de Redis et une rétention Kafka devenue insuffisante. Un déploiement distribué nécessiterait plusieurs brokers, une réplication appropriée et une politique de disponibilité Redis documentée.
+\par
+\subsection{Exploitation et gouvernance des données}
+L'exploitation doit suivre le retard Kafka par partition, la durée des micro-lots, la taille de l'état, les rejets, la latence de publication et l'âge des données de l'écran. L'endpoint /health vérifie Redis mais ne démontre pas que Spark progresse. Les identifiants individuels restent hors de la couche de visualisation ; les flux bruts requièrent une durée de conservation, des accès limités et un mécanisme de suppression. Les capacités, coordonnées et droits d'accès aux sources réelles devront être validés avec leurs responsables avant tout usage opérationnel.
+\par
+
+\clearpage
+\section{Validation et tests de charge}\label{sec:8}
+\subsection{État des preuves disponibles}
+Le fichier {\small\ttfamily docs/\allowbreak{}load-test-preflight.\allowbreak{}json} enregistre une tentative du 23 octobre 2026 sous Windows 11, Python 3.13.2 et 12 processeurs logiques. Le statut est {\small\ttfamily preflight\_\allowbreak{}failed} : les métadonnées Kafka n'ont pas pu être obtenues, avec une erreur de transport du broker. La liste des paliers est vide. Le PDF de charge existant relate cet échec ; il ne démontre aucun débit soutenu. La cible de 50 000 événements/s est donc non validée \cite{ref9}.
+\par
+\subsection{Protocole expérimental proposé}
+Le protocole requiert un environnement isolé, un STREAM\_ID dédié et des checkpoints cohérents. Il faut enregistrer le matériel, les versions, la taille des messages, les partitions, la réplication et les ressources des services. Après échauffement, le scénario suivant est exécuté au moins trois fois. Les mesures après vidange sont séparées du débit soutenu, afin de ne pas masquer une accumulation de retard.
+\par
+\reporttablebegin
+\begin{tabular}{|>{\raggedright\arraybackslash}m{\dimexpr 0.280\linewidth-2\tabcolsep-1.250\arrayrulewidth\relax}|>{\raggedright\arraybackslash}m{\dimexpr 0.200\linewidth-2\tabcolsep-1.250\arrayrulewidth\relax}|>{\raggedright\arraybackslash}m{\dimexpr 0.230\linewidth-2\tabcolsep-1.250\arrayrulewidth\relax}|>{\raggedright\arraybackslash}m{\dimexpr 0.290\linewidth-2\tabcolsep-1.250\arrayrulewidth\relax}|}
+\hline\rowcolor{navy}
+\color{white}\bfseries Palier visé & \color{white}\bfseries Durée proposée & \color{white}\bfseries Volume théorique & \color{white}\bfseries Rôle\\\hline
+1 000 événements/s & 60 s & 60 000 & Référence\\\hline
+10 000 événements/s & 60 s & 600 000 & Progression\\\hline
+25 000 événements/s & 60 s & 1 500 000 & Localiser les limites\\\hline
+50 000 événements/s & 900 s & 45 000 000 & Vérifier la tenue\\\hline
+\end{tabular}
+\reporttableend
+\reportcaption{Tableau 3 - Charges proposées et volumes calculés. Ces valeurs ne sont pas des résultats expérimentaux.}
+Le runner existant accepte une durée commune à tous les paliers ; la tenue de 900 secondes se lance donc séparément. Il suit les compteurs Redis après micro-lot et les statistiques du producteur. Il ne mesure pas les latences individuelles, le navigateur ni CPU/RAM. Ces instruments doivent être ajoutés avant de conclure sur la qualité de service.
+\par
+\subsection{Mesures et critères d'acceptation}
+Le débit utile est le nombre d'événements uniques validés et publiés dans Redis par seconde. Les percentiles p50, p95 et p99 doivent porter sur la latence émission\(\rightarrow\)Redis et émission\(\rightarrow\)affichage avec horloges synchronisées. Une proposition de validation exige 50 000 événements/s sur 15 minutes, un retard sans croissance durable et une réconciliation complète des événements uniques admissibles après vidange. Une cible p95 d'affichage de 30 secondes est proposée, à approuver comme exigence ; aucune mesure de cette latence n'est disponible. La tolérance de 5 \% du runner est un seuil d'essai, pas une preuve stricte de 50 000/s.
+\par
+La campagne fonctionnelle doit injecter doublons, coordonnées invalides, retards et capacités manquantes, puis vérifier les comptes attendus, les rejets et l'hystérésis. La campagne de panne doit interrompre Spark et Redis. Enfin, une tension contrôlée doit produire une recommandation vérifiable ; la commande automatique de flotte restera un essai distinct après implémentation de son adaptateur.
+\par
+
+\clearpage
+\section{Conclusion et références}\label{sec:9}
+\subsection{Bilan et perspectives}
+Le démonstrateur fournit une chaîne cohérente pour ingérer, agréger et visualiser des flux spatiaux récents. Les trois scripts exigés sont présents : {\small\ttfamily worldcup\_\allowbreak{}event\_\allowbreak{}producer.\allowbreak{}py} pour la simulation, {\small\ttfamily spark\_\allowbreak{}worldcup\_\allowbreak{}traffic.\allowbreak{}py} pour le traitement et {\small\ttfamily app\_\allowbreak{}worldcup\_\allowbreak{}control.\allowbreak{}py} pour la supervision. Le livrable {\small\ttfamily load\_\allowbreak{}testing\_\allowbreak{}report.\allowbreak{}pdf} existe, mais documente seulement un échec de précontrôle. Les exemples calculés de ce rapport illustrent les règles ; ils ne constituent pas une évaluation de performance.
+\par
+La conformité opérationnelle reste partielle. Les priorités sont de connecter des sources autorisées pour Al Boraq et les hôtels, d'étalonner les capacités, de valider la reprise et d'instrumenter la latence. Une campagne soutenue devra ensuite établir le débit réellement atteint. Le volet prédictif devra être comparé à des références sur des matchs séparés, puis la réorientation sera reliée à une commande traçable de flotte. L'apport académique du projet réside dans cette articulation entre architecture de flux, sens des indicateurs et validation expérimentale : une visualisation exploitable doit reposer sur des données qualifiées et des garanties mesurées.
+\par
+\subsection{Références bibliographiques et techniques}
+{\small Les références en ligne ont été consultées le 19 novembre 2026. Les références locales correspondent au dépôt analysé ; les configurations et résultats synthétiques ne sont pas des données officielles de 2030.\par}
+\begingroup
+\fontsize{9.1}{11.1}\selectfont
+\renewcommand{\section}[2]{}
+\begin{thebibliography}{10}
+\raggedright
+\setlength{\itemsep}{3pt}
+\setlength{\parskip}{0pt}
+\bibitem{ref1} Cahier des charges du mini-projet 15, « Supervision World Cup 2030 Traffic ». Sujet fourni avec la demande, sections 1 à 5.
+\bibitem{ref2} Dépôt Supervision-World-Cup-2030-Traffic. README.md ; docs/architecture.md ; scripts principaux ; modules worldcup ; assets/10\_map.js ; data/demo\_reference.json ; compose.yaml. Sources primaires de l'analyse de réalisation.
+\bibitem{ref3} Apache Software Foundation. Apache Kafka 4.1, \emph{Design}. \href{https://kafka.apache.org/41/design/design/}{kafka.apache.org/41/design/design/}
+\bibitem{ref4} Apache Software Foundation. Spark 4.0.1, \emph{Structured Streaming Programming Guide}, temps événementiel et ForeachBatch. \href{https://spark.apache.org/docs/4.0.1/streaming/apis-on-dataframes-and-datasets.html}{Documentation officielle Spark Structured Streaming}.
+\bibitem{ref5} H3. Documentation 4.x, \emph{Indexing functions} et \emph{Tables of Cell Statistics Across Resolutions}. \href{https://h3geo.org/docs/api/indexing/}{Fonctions d'indexation} ; \href{https://h3geo.org/docs/core-library/restable/}{statistiques des cellules}.
+\bibitem{ref6} Redis. \emph{Redis pipelining}. \href{https://redis.io/docs/latest/develop/using-commands/pipelining/}{Documentation du regroupement des commandes Redis}.
+\bibitem{ref7} Plotly. \emph{Dash Live Updates}, composant dcc.Interval. \href{https://dash.plotly.com/live-updates}{dash.plotly.com/live-updates}.
+\bibitem{ref8} Mapbox. \emph{Work with sources and layers}, couche fill-extrusion. \href{https://docs.mapbox.com/mapbox-gl-js/guides/styles/work-with-layers/}{Guide officiel des couches Mapbox GL JS}.
+\bibitem{ref9} Dépôt du projet. docs/load-test-preflight.json ; load\_testing\_report.pdf ; scripts/load\_test.py ; scripts/render\_load\_report.py. Trace d'essai du 23 octobre 2026 et méthode de mesure existante.
+\bibitem{ref10} Akidau, T. et al. (2015). \emph{The Dataflow Model: A Practical Approach to Balancing Correctness, Latency, and Cost in Massive-Scale, Unbounded, Out-of-Order Data Processing}. Proceedings of the VLDB Endowment, 8, 1792-1803. \href{https://research.google/pubs/the-dataflow-model-a-practical-approach-to-balancing-correctness-latency-and-cost-in-massive-scale-unbounded-out-of-order-data-processing/}{Notice de l'article et auteurs}.
+\end{thebibliography}
+\endgroup
+\end{document}

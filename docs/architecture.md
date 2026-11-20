@@ -11,7 +11,7 @@ Ce document décrit l'architecture actuelle du pipeline de supervision et son co
 | Détection des goulots et réorientation de navettes | Calcul de pression par zone et publication de recommandations de déviation. |
 | Tension des capacités hôtelières | Flux séparé de capacité/occupation, à obtenir ou à simuler ; les seuls passages aux portiques ne permettent pas de la déduire. |
 | Prédiction de saturation | Prévision à court terme fondée d'abord sur les séries agrégées et le calendrier des matchs, puis comparaison avec un modèle plus élaboré si les données le justifient. |
-| Carte 3D et accès rapide | Redis pour les derniers agrégats ; Dash/Mapbox pour la carte, les séries et les alertes. |
+| Carte 3D et accès rapide | Redis conserve les derniers agrégats. FastAPI transmet l'état au navigateur par WebSocket et Mapbox affiche la carte 3D. |
 | 50 000 événements/s | Objectif de test de bout en bout, avec résultats mesurés sur un environnement décrit. |
 
 ## 2. Flux et responsabilités
@@ -25,17 +25,20 @@ Flux capacité/occupation hôtelière ───┘                 │
                                                                   │
                                                                   v
                                                                 Redis
+                                                          Pub/Sub + lecture
                                                                   │
                                                                   v
-                                                         Dash + Mapbox 3D
-                                                                  │
+Fichier de suivi des paliers ─────────── notifications ───────> FastAPI
+                                                                  │ /ws
                                                                   v
-                                                  alertes et recommandations de navettes
+                                                      Navigateur + Mapbox 3D
+                                                      alertes et navettes
 ```
 
 - `worldcup_event_producer.py` émet des événements synthétiques reproductibles de stade et de transport, des instantanés hôteliers renouvelés, à un débit contrôlable. Un profil de pics autour des matchs reste à ajouter.
-- `spark_worldcup_traffic.py` valide les messages, utilise le **temps de l'événement**, déduplique, calcule les cellules H3 et les fenêtres, puis publie des états agrégés dans Redis. Les rejets sont publiés dans le topic `worldcup-invalid` ; les checkpoints sont écrits sous `SPARK_CHECKPOINT_ROOT` et doivent être conservés pour une reprise.
-- `app_worldcup_control.py` lit l'état agrégé, affiche la carte et les alertes, et expose la justification d'une recommandation. Le tableau de bord ne lit pas directement les identifiants des spectateurs.
+- `spark_worldcup_traffic.py` valide les messages, utilise le **temps de l'événement**, déduplique et calcule les cellules H3 et les fenêtres. Spark enregistre les agrégats dans Redis et publie une notification Pub/Sub après la validation des écritures d'un micro-lot de foule ou l'acceptation d'une mise à jour hôtelière. Le topic `worldcup-invalid` contient les rejets. Pour permettre une reprise, conserver les checkpoints écrits sous `SPARK_CHECKPOINT_ROOT`.
+- `app_worldcup_control.py` sert la page et ses ressources par HTTP. FastAPI lit l'état initial dans Redis et actualise la vue quand il reçoit une notification. Le navigateur reçoit la vue sur `/ws` et peut choisir la ville sur cette même connexion. En période d'inactivité, le serveur vérifie l'expiration des données toutes les 30 secondes et transmet une vue si l'état affiché change. Les identifiants individuels restent dans les flux d'ingestion.
+- Pendant la présentation, FastAPI sert aussi les supports du pitch par HTTP. Il surveille le fichier de suivi des paliers à partir des notifications du système de fichiers et diffuse l'état du palier sur `/ws`.
 - Le flux hôtelier transmet des instantanés d'occupation et de capacité par zone et heure. Son adaptateur réel, sa fréquence et ses droits d'accès restent à définir.
 
 ## 3. Contrat d'événement

@@ -6,10 +6,11 @@ from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import time
-from typing import Any
+from typing import Any, Iterable
 
 
 PREFIX = "wc:v1"
+VIEW_CHANNEL = f"{PREFIX}:dashboard:updates"
 
 
 AGGREGATE_SCRIPT = """
@@ -51,6 +52,7 @@ redis.call('HSET', KEYS[1],
 redis.call('EXPIRE', KEYS[1], tonumber(ARGV[10]))
 redis.call('SADD', KEYS[2], KEYS[1])
 redis.call('EXPIRE', KEYS[2], tonumber(ARGV[10]))
+redis.call('PUBLISH', ARGV[11], 'hotel')
 return 1
 """
 
@@ -59,7 +61,9 @@ PROGRESS_SCRIPT = """
 if not redis.call('SET', KEYS[1], '1', 'NX', 'EX', tonumber(ARGV[1])) then
   return 0
 end
-return redis.call('INCRBY', KEYS[2], tonumber(ARGV[2]))
+local total = redis.call('INCRBY', KEYS[2], tonumber(ARGV[2]))
+redis.call('PUBLISH', ARGV[3], 'crowd')
+return total
 """
 
 
@@ -87,8 +91,11 @@ def hotel_key(city: str, area_id: str) -> str:
     return f"{PREFIX}:hotel:{sha256(identity.encode('utf-8')).hexdigest()}"
 
 
-def write_aggregate(
-    client: Any,
+def processed_key(stream_id: str) -> str:
+    return f"{PREFIX}:metrics:processed:{stream_id}"
+
+
+def _aggregate_command(
     *,
     stream_id: str,
     batch_id: int,
@@ -102,33 +109,49 @@ def write_aggregate(
     delta: int,
     capacity: int | None,
     ttl_seconds: int,
-) -> int:
+) -> tuple:
     if delta <= 0:
         raise ValueError("aggregate delta must be positive")
     key = aggregate_key(kind, city, venue, source, h3_cell, window_start)
     marker = f"{PREFIX}:batch:{stream_id}:{batch_id}:{key.rsplit(':', 1)[1]}"
-    return int(
-        client.eval(
-            AGGREGATE_SCRIPT,
-            3,
-            marker,
-            key,
-            index_key(kind),
-            max(ttl_seconds * 4, 3600),
-            ttl_seconds,
-            delta,
-            city,
-            venue,
-            source,
-            h3_cell,
-            kind,
-            _iso(window_start),
-            _iso(window_end),
-            _iso(datetime.now(timezone.utc)),
-            capacity if capacity is not None else "",
-            int(_utc(window_end).timestamp()),
-        )
+    return (
+        marker,
+        key,
+        index_key(kind),
+        max(ttl_seconds * 4, 3600),
+        ttl_seconds,
+        delta,
+        city,
+        venue,
+        source,
+        h3_cell,
+        kind,
+        _iso(window_start),
+        _iso(window_end),
+        _iso(datetime.now(timezone.utc)),
+        capacity if capacity is not None else "",
+        int(_utc(window_end).timestamp()),
     )
+
+
+def write_aggregate(client: Any, **aggregate: Any) -> int:
+    return int(client.eval(AGGREGATE_SCRIPT, 3, *_aggregate_command(**aggregate)))
+
+
+def write_aggregates(client: Any, aggregates: Iterable[dict[str, Any]]) -> None:
+    """Apply bounded groups of independent, retry-safe Redis scripts."""
+    script = client.register_script(AGGREGATE_SCRIPT)
+    with client.pipeline(transaction=False) as pipeline:
+        pending = 0
+        for aggregate in aggregates:
+            command = _aggregate_command(**aggregate)
+            script(keys=command[:3], args=command[3:], client=pipeline)
+            pending += 1
+            if pending == 256:
+                pipeline.execute()
+                pending = 0
+        if pending:
+            pipeline.execute()
 
 
 def write_hotel(client: Any, item: dict[str, Any], ttl_seconds: int) -> int:
@@ -149,6 +172,7 @@ def write_hotel(client: Any, item: dict[str, Any], ttl_seconds: int) -> int:
             item["rooms_occupied"],
             _iso(datetime.now(timezone.utc)),
             ttl_seconds,
+            VIEW_CHANNEL,
         )
     )
 
@@ -160,9 +184,10 @@ def mark_processed_batch(client: Any, *, stream_id: str, batch_id: int, count: i
             PROGRESS_SCRIPT,
             2,
             f"{PREFIX}:batch-progress:{stream_id}:{batch_id}",
-            f"{PREFIX}:metrics:processed:{stream_id}",
+            processed_key(stream_id),
             max(ttl_seconds * 4, 3600),
             count,
+            VIEW_CHANNEL,
         )
     )
 

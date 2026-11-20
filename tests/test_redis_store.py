@@ -4,12 +4,14 @@ import time
 import pytest
 
 from worldcup.redis_store import (
+    VIEW_CHANNEL,
     aggregate_key,
     index_key,
     mark_processed_batch,
     recent_aggregates,
     recent_hotels,
     write_aggregate,
+    write_aggregates,
     write_hotel,
 )
 
@@ -39,6 +41,9 @@ def test_reads_recent_aggregate_and_hotel_with_typed_values():
 
 def test_aggregate_delta_and_progress_are_idempotent():
     client = fakeredis.FakeRedis(decode_responses=True)
+    events = client.pubsub()
+    events.subscribe(VIEW_CHANNEL)
+    assert events.get_message()["type"] == "subscribe"
     end = datetime.now(timezone.utc).replace(microsecond=0)
     arguments = dict(
         stream_id="test-stream",
@@ -61,10 +66,16 @@ def test_aggregate_delta_and_progress_are_idempotent():
     assert mark_processed_batch(client, stream_id="test-stream", batch_id=1, count=20, ttl_seconds=900) == 20
     assert mark_processed_batch(client, stream_id="test-stream", batch_id=1, count=20, ttl_seconds=900) == 0
     assert mark_processed_batch(client, stream_id="test-stream", batch_id=2, count=15, ttl_seconds=900) == 35
+    assert [events.get_message()["data"] for _ in range(2)] == ["crowd", "crowd"]
+    assert events.get_message() is None
+    events.close()
 
 
 def test_hotel_update_rejects_stale_snapshots():
     client = fakeredis.FakeRedis(decode_responses=True)
+    events = client.pubsub()
+    events.subscribe(VIEW_CHANNEL)
+    assert events.get_message()["type"] == "subscribe"
     current = datetime.now(timezone.utc).replace(microsecond=0)
     sample = {
         "snapshot_id": "current",
@@ -80,3 +91,31 @@ def test_hotel_update_rejects_stale_snapshots():
     stale = sample | {"snapshot_id": "older", "timestamp": (current - timedelta(minutes=1)).isoformat().replace("+00:00", "Z")}
     assert write_hotel(client, stale, 900) == 0
     assert recent_hotels(client)[0]["snapshot_id"] == "current"
+    assert events.get_message()["data"] == "hotel"
+    assert events.get_message() is None
+    events.close()
+
+
+def test_pipeline_retries_preserve_counts_and_capacity():
+    client = fakeredis.FakeRedis(decode_responses=True)
+    start = datetime.now(timezone.utc).replace(microsecond=0)
+    window = dict(
+        stream_id="pipelined",
+        batch_id=1,
+        kind="venue",
+        city="Rabat",
+        venue="Stade Prince Moulay Abdellah",
+        source="stadium_access",
+        h3_cell="",
+        window_start=start,
+        window_end=start + timedelta(minutes=1),
+        delta=10,
+        capacity=100,
+        ttl_seconds=900,
+    )
+    write_aggregates(client, iter([window] * 257))
+    assert recent_aggregates(client, "venue")[0]["event_count"] == 10
+    write_aggregates(client, iter([window | {"batch_id": 2, "delta": 15}, window]))
+    row = recent_aggregates(client, "venue")[0]
+    assert row["event_count"] == 25
+    assert row["pressure"] == 0.25

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coupe du monde 2030 | Transport &amp; Spectateurs</title>
+  <link rel="stylesheet" href="/assets/20_style.css">
+  <script type="module" src="/assets/30_dashboard.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">WORLD CUP 2030 / MAROC</div>
+        <h1>Transport &amp; Spectateurs</h1>
+        <p id="subtitle" class="subtitle">Supervision des accès, des transports et des capacités hôtelières.</p>
+      </div>
+      <nav id="presentation-links" class="presentation-links" aria-label="Supports de présentation" hidden>
+        <a href="/pitch/slides.html">Présentation</a>
+        <a href="/pitch/">Simulation 3D</a>
+      </nav>
+    </header>
+
+    <section id="stage-panel" class="stage-panel" aria-label="Scénario Kafka, Spark et Redis" hidden>
+      <div class="stage-heading">
+        <h2 id="stage-title">Simulation d’avant-match</h2>
+        <span id="stage-state" class="stage-state" role="status" hidden></span>
+        <ol class="stage-steps" role="list" aria-label="Paliers de simulation en nombre d’événements">
+          <li data-stage="1">1</li>
+          <li data-stage="20">20</li>
+          <li data-stage="100">100</li>
+          <li data-stage="500">500</li>
+        </ol>
+      </div>
+      <p id="stage-prompt">Saisir un palier dans le terminal pour lancer la simulation.</p>
+      <div id="stage-progress" hidden>
+        <progress id="stage-bar" value="0" max="1" aria-label="Événements écrits dans Redis"></progress>
+        <div class="stage-counts">
+          <span><strong id="stage-published">0 / 0</strong> confirmations Kafka</span>
+          <span><strong id="stage-processed">0 / 0</strong> écrits dans Redis</span>
+          <span><strong id="stage-elapsed">0,0 s</strong> pour ce palier</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <div id="city-picker" class="city-picker" hidden>
+        <label for="city">Ville</label>
+        <select id="city"></select>
+      </div>
+      <strong id="fixed-city" hidden></strong>
+      <div class="feed-status">
+        <span id="freshness" class="freshness" role="status"></span>
+        <span id="connection" class="connection" data-state="connecting" role="status">Connexion au direct…</span>
+      </div>
+    </div>
+    <noscript><p class="muted">Activez JavaScript pour afficher les données en direct.</p></noscript>
+
+    <section class="metrics" aria-label="Indicateurs">
+      <article class="metric-card">
+        <div class="metric-label">Accès stade</div>
+        <div id="stadium_access-count" class="metric-value">—</div>
+        <div id="stadium_access-pressure" class="metric-note"></div>
+        <div id="stadium_access-forecast" class="metric-note"></div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Transport</div>
+        <div id="transit_validation-count" class="metric-value">—</div>
+        <div id="transit_validation-pressure" class="metric-note"></div>
+        <div id="transit_validation-forecast" class="metric-note"></div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Occupation hôtelière</div>
+        <div id="hotel-occupancy" class="metric-value">—</div>
+        <div id="hotel-note" class="metric-note"></div>
+      </article>
+    </section>
+
+    <div class="situation-grid">
+      <section class="map-panel" aria-labelledby="map-title">
+        <div class="map-heading">
+          <h2 id="map-title">Terrain et passages</h2>
+          <label for="map-choice">Affichage
+            <select id="map-choice">
+              <option value="passages" selected>Passages</option>
+              <option value="density">Densité H3</option>
+              <option value="mapbox" id="mapbox-option" disabled hidden>Carte Mapbox</option>
+            </select>
+          </label>
+        </div>
+        <div id="density-map" class="map-canvas">
+          <canvas id="density-canvas" role="img" aria-label="Plan des passages simulés et du site de démonstration"></canvas>
+          <canvas id="site-canvas" role="img" aria-label="Site simulé en 3D avec terrain de football, tribunes, entrées et arrêt de transport" aria-hidden="true"></canvas>
+          <div id="site-labels" aria-hidden="true" hidden></div>
+          <div id="map" role="region" aria-label="Carte Mapbox des passages et des équipements simulés" aria-hidden="true"></div>
+        </div>
+        <div class="map-status">
+          <div class="map-summary">
+            <span id="map-mode" role="status"></span>
+            <span id="map-render-status"></span>
+          </div>
+          <div id="passage-legend" class="map-legend">
+            <span class="stadium-passage">Passage à une entrée</span>
+            <span class="transit-passage">Validation transport</span>
+          </div>
+          <div id="density-legend" class="map-legend" hidden>
+            <span>Événements par cellule et par source</span>
+            <span class="low">&lt; 30</span>
+            <span class="medium">30–99</span>
+            <span class="high">≥ 100</span>
+          </div>
+        </div>
+      </section>
+      <div class="detail-grid">
+        <section class="panel" aria-labelledby="alerts-label">
+          <h2 id="alerts-label">Alertes</h2>
+          <div id="alerts"></div>
+        </section>
+        <section class="panel" aria-labelledby="recommendations-label">
+          <h2 id="recommendations-label">Navettes suggérées</h2>
+          <div id="recommendations"></div>
+        </section>
+        <section class="panel" aria-labelledby="hotels-label">
+          <h2 id="hotels-label">Hôtels</h2>
+          <div id="hotels"></div>
+        </section>
+      </div>
+    </div>
+    <footer>Données de démonstration synthétiques. Les suggestions ne commandent aucune flotte réelle.</footer>
+  </main>
+</body>
+</html>

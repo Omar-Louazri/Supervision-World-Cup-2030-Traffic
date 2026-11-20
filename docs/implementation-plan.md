@@ -10,8 +10,8 @@ Cette feuille de route distingue les composants présents dans le [dépôt](../R
 | Producteur synthétique | Implémenté | `worldcup_event_producer.py`, contrats et tests |
 | Traitement streaming | Implémenté, intégration Kafka à vérifier | `spark_worldcup_traffic.py`, tests Spark de validation, tests Lua Redis |
 | Hôtels et prévision simple | Implémenté avec données synthétiques | Instantanés synthétiques, fraîcheur et extrapolation de fenêtres |
-| Tableau de bord et navettes | Implémenté avec données synthétiques | Dash, Mapbox H3, alertes avec hystérésis, route suggérée |
-| Charge à 50 000/s | Non mesurée | Runner, PDF de précontrôle et protocole ; Kafka local indisponible |
+| Tableau de bord et navettes | Implémenté avec données synthétiques | FastAPI, WebSocket `/ws`, Mapbox H3, alertes avec hystérésis, route suggérée |
+| Charge à 50 000/s | Échec de bout en bout sur la pile locale | Kafka a accepté une pointe à 51 008 événements/s. Spark avait finalisé 31 620 événements sur 1 530 000 à la fin de l'émission. [Rapport de charge](../load_testing_report.pdf) |
 
 ## Étapes restantes, dans l'ordre
 
@@ -28,7 +28,7 @@ Les [instructions de collecte routière](road-data.md) précisent les commandes 
 
 ### 1. Vérifier le parcours complet
 
-- [ ] Démarrer Kafka, Spark, Redis et Dash sur une machine Linux ou un environnement Spark compatible ; créer les quatre topics.
+- [ ] Démarrer Kafka, Spark, Redis et le tableau de bord FastAPI dans un environnement compatible avec Spark, puis créer les quatre topics.
 - [ ] Émettre un jeu contrôlé et confirmer les comptes, cellules H3, fenêtres, hôtels et alertes dans Redis et dans le navigateur.
 - [ ] Réinjecter des doublons, des messages invalides et des événements retardés ; contrôler le topic `worldcup-invalid` et les agrégats.
 - [ ] Redémarrer Spark avec le même checkpoint au milieu d'un micro-lot ; vérifier l'absence de double comptage et la reprise des trois requêtes.
@@ -48,11 +48,12 @@ Les [instructions de collecte routière](road-data.md) précisent les commandes 
 
 ### 3. Mesurer et optimiser la charge
 
-- [ ] Réserver un environnement de test avec CPU, RAM, réseau, partitions Kafka, Spark, Redis et `STREAM_ID` consignés.
-- [ ] Lancer les paliers 1k, 10k, 25k et 50k événements/s, puis un palier de 15 minutes à 50k/s si l'environnement le permet.
+- [x] Réserver une pile locale isolée et consigner sa configuration.
+- [x] Lancer les paliers nominaux à 1 000, 10 000, 25 000 et 50 000 événements/s et une pointe de 30 secondes injectée par lots au-dessus de 50 000 événements/s.
+- [ ] Exécuter un palier de 15 minutes à 50 000 événements/s sur une infrastructure dimensionnée pour ce débit.
 - [ ] Mesurer, en plus des compteurs déjà disponibles, le retard Kafka, la durée des micro-lots, les pertes, la latence événement→Redis→écran et CPU/RAM.
 - [ ] Tester retards d'événements, panne/reprise et pics ; régler partitions, parallélisme et écritures Redis selon les goulots observés.
-- [ ] Régénérer `load_testing_report.pdf` depuis `artifacts/load-results.json` et les mesures complémentaires ; conclure explicitement sur la cible.
+- [x] Publier les mesures du test local et le verdict dans le [rapport de charge](../load_testing_report.pdf). [Résultats JSON](load-test-results.json)
 
 **Critère de fin :** un tiers peut reproduire les mesures et distinguer débit émis, traité pendant le palier et traité après vidange. Aucun succès à 50k/s n'est présumé.
 
@@ -61,8 +62,8 @@ Les [instructions de collecte routière](road-data.md) précisent les commandes 
 - Les contrats du producteur, la génération reproductible, le rafraîchissement hôtelier et les règles analytiques passent leurs tests unitaires.
 - Les tests Spark locaux vérifient les raisons de rejet, les colonnes publiées et la validation hôtelière. Le calcul H3 est également testé hors worker Python.
 - Les scripts Lua Redis sont testés contre fakeredis : ajout idempotent, compteur de progression et refus d'un instantané hôtelier ancien.
-- Le tableau de bord démarre et ses routes `/` et `/health` ont répondu sur cette machine ; un test Redis→vue couvre l'alerte, la navette, l'hôtel et le GeoJSON.
-- Le précontrôle de charge a échoué sur la connexion à Kafka local. Le PDF enregistré ne contient donc aucun résultat de débit.
+- Un test de la vue produite à partir de Redis couvre l'alerte, la navette, l'hôtel et le GeoJSON.
+- Le test du 20 novembre a confirmé la génération automatique de recommandations de navettes simulées à Casablanca et à Rabat sur `/ws`, y compris pendant la pointe d'ingestion Kafka. [Rapport de charge](../load_testing_report.pdf)
 
 ## Décisions métier ouvertes
 

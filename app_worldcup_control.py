@@ -1,19 +1,38 @@
-"""Dash operations view with a Mapbox 3D H3 density layer."""
+"""Serve the traffic dashboard and push its live state through FastAPI WebSockets."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import asyncio
+from contextlib import asynccontextmanager
+import json
+import os
+from pathlib import Path
+from urllib.parse import urlsplit
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, WebSocketException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import redis
+import redis.asyncio as async_redis
+from watchfiles import awatch
 
 from worldcup.analytics import cell_geojson, forecast_next_counts, hotel_view, latest_rows, next_alert, recommend_shuttle
 from worldcup.config import ROOT, Settings
-from worldcup.redis_store import recent_aggregates, recent_hotels
+from worldcup.mapbox import CDN, STYLE, public_token
+from worldcup.redis_store import VIEW_CHANNEL, processed_key, recent_aggregates, recent_hotels
 from worldcup.reference import cities_by_name, load_reference
 
 
+def read_rows(client):
+    return recent_aggregates(client, "cell"), recent_aggregates(client, "venue"), recent_hotels(client)
+
+
 def build_view(client, reference: dict, city: str, previous_alerts: dict, settings: Settings) -> dict:
-    cells = [row for row in recent_aggregates(client, "cell") if row["city"] == city]
-    venues = [row for row in recent_aggregates(client, "venue") if row["city"] == city]
-    hotels = [row for row in recent_hotels(client) if row["city"] == city]
+    return city_view(read_rows(client), reference, city, previous_alerts, settings)
+
+
+def city_view(rows, reference, city, previous_alerts, settings):
+    cells, venues, hotels = ([row for row in group if row["city"] == city] for group in rows)
     current_venues = latest_rows(venues, ("city", "venue", "source"))
     alerts = []
     recommendations = []
@@ -49,159 +68,211 @@ def build_view(client, reference: dict, city: str, previous_alerts: dict, settin
         "alert_state": state,
         "latest_update": latest_update,
         "center": city_reference["center"],
+        "site": city_reference.get("site"),
     }
 
 
-def create_app(settings: Settings | None = None):
-    import redis
-    from dash import Dash, Input, Output, State, ClientsideFunction, dcc, html
-    from flask import jsonify
+class DashboardFeed:
+    """One Redis subscription and one materialized snapshot per city, shared by browsers."""
 
-    settings = settings or Settings.from_env()
-    reference = load_reference(settings.reference_path)
-    city_names = list(cities_by_name(reference))
-    client = redis.Redis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=2, socket_timeout=2)
-    app = Dash(
-        __name__,
-        assets_folder=str(ROOT / "assets"),
-        external_scripts=["https://api.mapbox.com/mapbox-gl-js/v3.33.0/mapbox-gl.js"],
-        external_stylesheets=["https://api.mapbox.com/mapbox-gl-js/v3.33.0/mapbox-gl.css"],
-        title="World Cup 2030 | Traffic Control",
-    )
-
-    @app.server.route("/health")
-    def health():
-        try:
-            client.ping()
-            return jsonify({"status": "ok", "redis": "ok"})
-        except redis.RedisError:
-            return jsonify({"status": "degraded", "redis": "unavailable"}), 503
-
-    app.layout = html.Main(
-        [
-            dcc.Store(id="mapbox-token", data=settings.mapbox_access_token),
-            dcc.Store(id="map-data"),
-            dcc.Store(id="alert-state", data={}),
-            dcc.Interval(id="refresh", interval=10_000, n_intervals=0),
-            html.Header(
-                [
-                    html.Div("WORLD CUP 2030 / MAROC", className="eyebrow"),
-                    html.H1("Transport & Spectateurs"),
-                    html.P("Supervision des accès, des transports et des capacités hôtelières.", className="subtitle"),
-                ],
-                className="page-header",
-            ),
-            html.Div(
-                [
-                    html.Label("Ville", htmlFor="city"),
-                    dcc.Dropdown(id="city", options=[{"label": city, "value": city} for city in city_names], value=city_names[0], clearable=False),
-                    html.Div(id="freshness", className="freshness", role="status"),
-                ],
-                className="controls",
-            ),
-            html.Section(id="metrics", className="metrics", **{"aria-label": "Indicateurs"}),
-            html.Section(
-                [
-                    html.Div(id="map", className="map-canvas", role="img", **{"aria-label": "Carte 3D des cellules H3"}),
-                    html.Div(id="map-render-status", className="map-status", role="status"),
-                ],
-                className="map-panel",
-                **{"aria-label": "Carte de densité"},
-            ),
-            html.Div(
-                [
-                    html.Section([html.H2("Alertes"), html.Div(id="alerts")], className="panel"),
-                    html.Section([html.H2("Navettes suggérées"), html.Div(id="recommendations")], className="panel"),
-                    html.Section([html.H2("Hôtels"), html.Div(id="hotels")], className="panel"),
-                ],
-                className="detail-grid",
-            ),
-            html.Footer("Données de démonstration synthétiques. Les suggestions ne commandent aucune flotte réelle."),
-        ],
-        className="shell",
-    )
-
-    @app.callback(
-        Output("map-data", "data"),
-        Output("metrics", "children"),
-        Output("freshness", "children"),
-        Output("alerts", "children"),
-        Output("recommendations", "children"),
-        Output("hotels", "children"),
-        Output("alert-state", "data"),
-        Input("refresh", "n_intervals"),
-        Input("city", "value"),
-        State("alert-state", "data"),
-    )
-    def refresh(_interval, city, alert_state):
-        empty = {"geojson": {"type": "FeatureCollection", "features": []}, "center": cities_by_name(reference)[city]["center"]}
-        try:
-            view = build_view(client, reference, city, alert_state or {}, settings)
-        except redis.RedisError:
-            return empty, [], "Redis indisponible", html.P("Données temporairement indisponibles."), [], [], alert_state or {}
-
-        by_source = {row["source"]: row for row in view["venues"]}
-        cards = []
-        for source, label in (("stadium_access", "Accès stade"), ("transit_validation", "Transport")):
-            row = by_source.get(source)
-            count = row["event_count"] if row else None
-            pressure = row.get("pressure") if row else None
-            cards.append(
-                html.Article(
-                    [
-                        html.Div(label, className="metric-label"),
-                        html.Div(f"{count:,}" if count is not None else "—", className="metric-value"),
-                        html.Div(f"Pression {pressure:.0%}" if pressure is not None else "Capacité inconnue", className="metric-note"),
-                        html.Div(
-                            f"Prévision : {view['forecasts'][source]:,}" if view["forecasts"].get(source) is not None else "Prévision indisponible",
-                            className="metric-note",
-                        ),
-                    ],
-                    className="metric-card",
-                )
-            )
-        hotel = next((item for item in view["hotels"] if item["area_id"] == "citywide"), None)
-        cards.append(
-            html.Article(
-                [
-                    html.Div("Occupation hôtelière", className="metric-label"),
-                    html.Div(f"{hotel['occupancy']:.0%}" if hotel and not hotel["stale"] else "—", className="metric-value"),
-                    html.Div("Données périmées" if hotel and hotel["stale"] else "Données disponibles" if hotel else "Source indisponible", className="metric-note"),
-                ],
-                className="metric-card",
-            )
+    def __init__(self, settings, reference, stage_file, *, benchmark_ws=False):
+        self.settings = settings
+        self.reference = reference
+        self.stage_file = stage_file
+        self.benchmark_ws = benchmark_ws
+        self.client = redis.Redis.from_url(
+            settings.redis_url, decode_responses=True, socket_connect_timeout=2, socket_timeout=2
         )
-        alert_cards = [
-            html.Article(f"{row['source']} · {row['venue']} · pression {row['pressure']:.0%}", className="list-item alert")
-            for row in view["alerts"]
-        ] or [html.P("Aucune alerte active.", className="muted")]
-        route_cards = [
-            html.Article(
-                [html.Strong(route["route"]), html.Span(f"{route['available_seats']} places · {route['travel_minutes']} min"), html.Small(route["reason"])],
-                className="list-item",
-            )
-            for route in view["recommendations"]
-        ] or [html.P("Aucune suggestion en cours.", className="muted")]
-        hotel_cards = [
-            html.Article(
-                f"{item['area_id']} · {item['rooms_occupied']:,}/{item['rooms_available'] + item['rooms_occupied']:,} chambres · "
-                + ("périmé" if item["stale"] else "à jour"),
-                className="list-item",
-            )
-            for item in view["hotels"]
-        ] or [html.P("Aucune donnée hôtelière.", className="muted")]
-        updated = view["latest_update"]
-        freshness = f"Dernière mise à jour : {updated}" if updated else "En attente d'événements"
-        return {"geojson": view["geojson"], "center": view["center"]}, cards, freshness, alert_cards, route_cards, hotel_cards, view["alert_state"]
+        self.cities = list(cities_by_name(reference))
+        self.views = {}
+        self.alert_states = {}
+        self.stage = None
+        self.passages = {}
+        self.listeners = set()
+        self.dirty = asyncio.Event()
 
-    app.clientside_callback(
-        ClientsideFunction(namespace="worldcup", function_name="renderMap"),
-        Output("map-render-status", "children"),
-        Input("map-data", "data"),
-        State("mapbox-token", "data"),
-    )
+    def notify(self):
+        for listener in self.listeners:
+            listener.set()
+
+    def load_views(self):
+        benchmark_processed = None
+        try:
+            if self.benchmark_ws:
+                # Read before the aggregates so this is a lower bound on visible commits.
+                benchmark_processed = int(self.client.get(processed_key(self.settings.stream_id)) or 0)
+            rows = read_rows(self.client)
+            available = True
+        except redis.RedisError:
+            if self.views:
+                return {city: {**frame, "available": False} for city, frame in self.views.items()}
+            rows = ([], [], [])
+            available = False
+
+        frames = {}
+        for city in self.cities:
+            view = city_view(rows, self.reference, city, self.alert_states.get(city), self.settings)
+            self.alert_states[city] = view.pop("alert_state")
+            # The browser displays stale/fresh. An advancing age alone isn't a visible change.
+            for hotel in view["hotels"]:
+                hotel.pop("age_seconds", None)
+            frames[city] = {"type": "view", "city": city, "available": available, "view": view}
+            if self.benchmark_ws and available:
+                frames[city]["benchmark_processed_total"] = benchmark_processed
+        return frames
+
+    async def update_views(self):
+        while True:
+            self.dirty.clear()
+            frames = await asyncio.to_thread(self.load_views)
+            if frames != self.views:
+                self.views = frames
+                self.notify()
+            # Windows expire and hotel snapshots go stale even when all producers are idle.
+            try:
+                await asyncio.wait_for(self.dirty.wait(), timeout=30)
+            except asyncio.TimeoutError:
+                pass
+
+    async def listen_to_redis(self):
+        async with async_redis.Redis.from_url(
+            self.settings.redis_url, decode_responses=True, socket_connect_timeout=2
+        ) as client:
+            while True:
+                try:
+                    async with client.pubsub() as events:
+                        await events.subscribe(VIEW_CHANNEL)
+                        async for _ in events.listen():
+                            # A subscription acknowledgement also reconciles writes missed during an outage.
+                            self.dirty.set()
+                except redis.RedisError:
+                    self.dirty.set()
+                    await asyncio.sleep(2)
+
+    def load_presentation_file(self, path, attribute):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            value = {} if attribute == "passages" else None
+        except (OSError, ValueError):
+            return
+        if value != getattr(self, attribute):
+            setattr(self, attribute, value)
+            self.notify()
+
+    async def watch_stage(self):
+        files = {self.stage_file: "stage", self.stage_file.with_name("passages.json"): "passages"}
+        for path, attribute in files.items():
+            self.load_presentation_file(path, attribute)
+        async for changes in awatch(self.stage_file.parent, recursive=False, debounce=50,
+                                    watch_filter=lambda change, path: Path(path) in files,
+                                    yield_on_timeout=True, rust_timeout=30_000):
+            for path in {Path(name) for _, name in changes} or files:
+                self.load_presentation_file(path, files[path])
+
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or Settings.from_env()
+    stage_path = os.getenv("WORLDCUP_PRESENTATION_STAGE")
+    stage_file = Path(stage_path).resolve() if stage_path else None
+    reference = load_reference(settings.reference_path)
+    offline = os.getenv("WORLDCUP_OFFLINE_MAP") == "1"
+    benchmark_ws = os.getenv("WORLDCUP_BENCHMARK_WS") == "1"
+    map_config = {"token": "" if offline else public_token(settings.mapbox_access_token),
+                  "cdn": CDN, "style": STYLE, "offline": offline}
+
+    @asynccontextmanager
+    async def lifespan(app):
+        feed = DashboardFeed(settings, reference, stage_file, benchmark_ws=benchmark_ws)
+        app.state.feed = feed
+        tasks = [asyncio.create_task(feed.listen_to_redis()), asyncio.create_task(feed.update_views())]
+        if stage_file:
+            tasks.append(asyncio.create_task(feed.watch_stage()))
+        try:
+            yield
+        finally:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            feed.client.close()
+
+    app = FastAPI(lifespan=lifespan, openapi_url=None)
+    app.mount("/assets", StaticFiles(directory=ROOT / "assets"), name="assets")
+    app.mount("/vendor", StaticFiles(directory=ROOT / "pitch" / "dist" / "vendor"), name="vendor")
+    if stage_file:
+        app.mount("/pitch", StaticFiles(directory=ROOT / "pitch" / "dist", html=True), name="pitch")
+
+    @app.get("/")
+    async def dashboard():
+        return FileResponse(ROOT / "assets" / "dashboard.html", headers={"Cache-Control": "no-cache"})
+
+    @app.websocket("/ws")
+    async def live(socket: WebSocket):
+        origin = socket.headers.get("origin")
+        if origin and urlsplit(origin).netloc.lower() != socket.headers.get("host", "").lower():
+            await socket.close(code=1008)
+            return
+        feed = socket.app.state.feed
+        city = feed.cities[0]
+        subscription = 0
+        changed = asyncio.Event()
+        await socket.accept()
+        await socket.send_json({"type": "config", "cities": feed.cities, "city": city,
+                                "presentation": bool(stage_file), "map": map_config})
+
+        async def select_city():
+            nonlocal city, subscription
+            while True:
+                packet = await socket.receive()
+                if packet["type"] == "websocket.disconnect":
+                    return
+                try:
+                    message = json.loads(packet.get("text", ""))
+                except (ValueError, TypeError):
+                    message = None
+                if not isinstance(message, dict) or message.get("type") != "subscribe" or message.get("city") not in feed.cities:
+                    raise WebSocketException(code=1008, reason="Unknown city or subscription")
+                city = message["city"]
+                subscription += 1
+                changed.set()
+
+        async def send_updates():
+            last_view = last_stage = object()
+            last_subscription = -1
+            while True:
+                await changed.wait()
+                changed.clear()
+                frame = feed.views.get(city)
+                if frame and stage_file and city in feed.passages:
+                    frame = {**frame, "view": {**frame["view"], "passages": feed.passages[city]}}
+                if frame is not None and (frame != last_view or subscription != last_subscription):
+                    last_subscription = subscription
+                    await socket.send_json(frame)
+                    last_view = frame
+                stage = feed.stage
+                if stage_file and stage != last_stage:
+                    await socket.send_json({"type": "stage", "stage": stage})
+                    last_stage = stage
+
+        feed.listeners.add(changed)
+        changed.set()
+        tasks = [asyncio.create_task(select_city()), asyncio.create_task(send_updates())]
+        try:
+            done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in done:
+                task.result()
+        except WebSocketDisconnect:
+            pass
+        finally:
+            feed.listeners.discard(changed)
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+
     return app
 
 
 if __name__ == "__main__":
-    create_app().run(host="127.0.0.1", port=8050, debug=False)
+    import uvicorn
+
+    uvicorn.run(create_app(), host="127.0.0.1", port=int(os.getenv("DASH_PORT", "8050")))

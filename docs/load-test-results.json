@@ -1,0 +1,1433 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-11-20T08:51:24Z",
+  "host": {
+    "platform": "Linux-6.8.0-139-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpu_count": 8
+  },
+  "configuration": {
+    "kafka_bootstrap_servers": "127.0.0.1:29092",
+    "stream_id": "worldcup-load-20261120",
+    "duration_seconds": 60,
+    "drain_timeout_seconds": 180
+  },
+  "limitations": [
+    "Le palier à 1 000/s inclut un redémarrage de Spark après correction de sa dépendance Kafka. Le compteur a rattrapé les 60 000 événements avec le même checkpoint.",
+    "Les données synthétiques représentent des accès au stade et des validations de transport. La campagne couvre des pointes courtes et la réception WebSocket. La latence par événement et la tenue sur 15 minutes restent à mesurer."
+  ],
+  "stages": [
+    {
+      "run_id": "2e42e3c3096343ae86820e1f73ff5855",
+      "rate_requested": 1000,
+      "events_requested": 60000,
+      "producer_exit_code": 0,
+      "producer": {
+        "run_id": "2e42e3c3096343ae86820e1f73ff5855",
+        "sent": 60000,
+        "elapsed_s": 60.0016774180001,
+        "observed_rate": 999.9720438149018
+      },
+      "producer_wall_seconds": 62.036,
+      "processed_at_producer_finish": 856,
+      "processed_after_drain": 60000,
+      "drain_seconds": 22.011,
+      "sustained_processed_per_second": 13.8,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 2.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 4.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 6.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 8.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 10.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 12.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 14.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 16.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 18.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 20.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 22.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 24.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 26.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 28.02,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 30.02,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 32.02,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 34.02,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 36.02,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 38.02,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 40.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 42.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 44.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 46.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 48.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 50.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 52.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 54.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 56.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 58.03,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 60.04,
+          "processed": 856
+        }
+      ],
+      "meets_requested_rate": false,
+      "broker_observation": {
+        "begin": "2026-11-20T08:51:24.536+00:00",
+        "finish": "2026-11-20T08:52:49.038+00:00",
+        "offsets_before": {
+          "stadium-access": 0,
+          "transit-validations": 0,
+          "worldcup-invalid": 0
+        },
+        "offsets_after": {
+          "stadium-access": 33075,
+          "transit-validations": 26925,
+          "worldcup-invalid": 0
+        },
+        "producer_returncode": 0
+      }
+    },
+    {
+      "run_id": "a3c9ba674d0d4d76a45e642775f9c92f",
+      "rate_requested": 10000,
+      "events_requested": 600000,
+      "producer_exit_code": 0,
+      "producer": {
+        "run_id": "a3c9ba674d0d4d76a45e642775f9c92f",
+        "sent": 600000,
+        "elapsed_s": 60.00171877999992,
+        "observed_rate": 9999.71354487257
+      },
+      "producer_wall_seconds": 62.031,
+      "processed_at_producer_finish": 369352,
+      "processed_after_drain": 600000,
+      "drain_seconds": 28.02,
+      "sustained_processed_per_second": 5954.34,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 2.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 4.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 6.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 8.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 10.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 12.01,
+          "processed": 22476
+        },
+        {
+          "elapsed_s": 14.01,
+          "processed": 22476
+        },
+        {
+          "elapsed_s": 16.01,
+          "processed": 22476
+        },
+        {
+          "elapsed_s": 18.01,
+          "processed": 22476
+        },
+        {
+          "elapsed_s": 20.01,
+          "processed": 22476
+        },
+        {
+          "elapsed_s": 22.01,
+          "processed": 22476
+        },
+        {
+          "elapsed_s": 24.01,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 26.01,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 28.02,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 30.02,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 32.02,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 34.02,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 36.02,
+          "processed": 104862
+        },
+        {
+          "elapsed_s": 38.02,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 40.02,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 42.02,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 44.03,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 46.03,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 48.03,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 50.03,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 52.03,
+          "processed": 222328
+        },
+        {
+          "elapsed_s": 54.03,
+          "processed": 369352
+        },
+        {
+          "elapsed_s": 56.03,
+          "processed": 369352
+        },
+        {
+          "elapsed_s": 58.03,
+          "processed": 369352
+        },
+        {
+          "elapsed_s": 60.03,
+          "processed": 369352
+        }
+      ],
+      "meets_requested_rate": false,
+      "broker_observation": {
+        "offsets_before": {
+          "stadium-access": 33075,
+          "transit-validations": 26925,
+          "worldcup-invalid": 0
+        },
+        "offsets_after": {
+          "stadium-access": 363348,
+          "transit-validations": 296652,
+          "worldcup-invalid": 0
+        }
+      }
+    },
+    {
+      "run_id": "2b6f330e51de49e094125eea57af1fdb",
+      "rate_requested": 25000,
+      "events_requested": 1500000,
+      "producer_exit_code": 0,
+      "producer": {
+        "run_id": "2b6f330e51de49e094125eea57af1fdb",
+        "sent": 1500000,
+        "elapsed_s": 94.29878126299991,
+        "observed_rate": 15906.886387179176
+      },
+      "producer_wall_seconds": 96.053,
+      "processed_at_producer_finish": 428255,
+      "processed_after_drain": 1500000,
+      "drain_seconds": 52.021,
+      "sustained_processed_per_second": 4458.54,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 2.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 4.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 6.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 8.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 10.0,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 12.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 14.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 16.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 18.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 20.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 22.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 24.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 26.01,
+          "processed": 16076
+        },
+        {
+          "elapsed_s": 28.01,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 30.01,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 32.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 34.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 36.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 38.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 40.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 42.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 44.02,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 46.03,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 48.03,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 50.03,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 52.03,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 54.03,
+          "processed": 144702
+        },
+        {
+          "elapsed_s": 56.03,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 58.03,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 60.03,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 62.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 64.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 66.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 68.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 70.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 72.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 74.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 76.04,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 78.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 80.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 82.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 84.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 86.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 88.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 90.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 92.05,
+          "processed": 428255
+        },
+        {
+          "elapsed_s": 94.05,
+          "processed": 428255
+        }
+      ],
+      "meets_requested_rate": false,
+      "broker_observation": {
+        "begin": "2026-11-20T08:55:33.028+00:00",
+        "finish": "2026-11-20T08:58:01.440+00:00",
+        "offsets_before": {
+          "stadium-access": 363348,
+          "transit-validations": 296652,
+          "worldcup-invalid": 0
+        },
+        "offsets_after": {
+          "stadium-access": 1188453,
+          "transit-validations": 971547,
+          "worldcup-invalid": 0
+        },
+        "producer_returncode": 0
+      }
+    },
+    {
+      "run_id": "7e3bc806cc0742bab748749ac1845ad4",
+      "rate_requested": 50000,
+      "events_requested": 3000000,
+      "producer_exit_code": 0,
+      "producer": {
+        "run_id": "7e3bc806cc0742bab748749ac1845ad4",
+        "sent": 3000000,
+        "elapsed_s": 189.73796684400008,
+        "observed_rate": 15811.279365434322
+      },
+      "producer_wall_seconds": 190.112,
+      "processed_at_producer_finish": 1235805,
+      "processed_after_drain": 3000000,
+      "drain_seconds": 88.041,
+      "sustained_processed_per_second": 6500.39,
+      "samples": [
+        {
+          "elapsed_s": 0.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 2.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 4.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 6.0,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 8.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 10.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 12.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 14.01,
+          "processed": 0
+        },
+        {
+          "elapsed_s": 16.01,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 18.01,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 20.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 22.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 24.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 26.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 28.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 30.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 32.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 34.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 36.02,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 38.03,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 40.03,
+          "processed": 57213
+        },
+        {
+          "elapsed_s": 42.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 44.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 46.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 48.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 50.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 52.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 54.03,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 56.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 58.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 60.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 62.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 64.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 66.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 68.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 70.04,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 72.05,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 74.05,
+          "processed": 267571
+        },
+        {
+          "elapsed_s": 76.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 78.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 80.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 82.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 84.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 86.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 88.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 90.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 92.05,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 94.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 96.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 98.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 100.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 102.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 104.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 106.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 108.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 110.06,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 112.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 114.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 116.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 118.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 120.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 122.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 124.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 126.07,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 128.08,
+          "processed": 658831
+        },
+        {
+          "elapsed_s": 130.08,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 132.08,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 134.08,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 136.08,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 138.08,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 140.08,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 142.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 144.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 146.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 148.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 150.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 152.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 154.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 156.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 158.09,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 160.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 162.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 164.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 166.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 168.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 170.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 172.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 174.1,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 176.11,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 178.11,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 180.11,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 182.11,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 184.11,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 186.11,
+          "processed": 1235805
+        },
+        {
+          "elapsed_s": 188.11,
+          "processed": 1235805
+        }
+      ],
+      "meets_requested_rate": false,
+      "broker_observation": {
+        "begin": "2026-11-20T08:58:01.469+00:00",
+        "finish": "2026-11-20T09:02:39.870+00:00",
+        "offsets_before": {
+          "stadium-access": 1188453,
+          "transit-validations": 971547,
+          "worldcup-invalid": 0
+        },
+        "offsets_after": {
+          "stadium-access": 2837781,
+          "transit-validations": 2322219,
+          "worldcup-invalid": 0
+        },
+        "producer_returncode": 0
+      },
+      "recommendations_during_offer": [
+        {
+          "observed_at": "2026-11-20T08:58:17.473+00:00",
+          "city": "Casablanca",
+          "available": true,
+          "recommendations": [
+            {
+              "city": "Casablanca",
+              "route": "Navette A",
+              "available_seats": 400,
+              "travel_minutes": 18,
+              "reason": "Pression 539%; priorité à la capacité disponible par minute de trajet.",
+              "status": "simulation_only"
+            }
+          ],
+          "alerts": [
+            {
+              "source": "transit_validation",
+              "pressure": 5.3875,
+              "event_count": 12930,
+              "window_start": "2026-11-20T08:58:00Z",
+              "window_end": "2026-11-20T08:59:00Z"
+            },
+            {
+              "source": "stadium_access",
+              "pressure": 8.7305555555556,
+              "event_count": 15715,
+              "window_start": "2026-11-20T08:58:00Z",
+              "window_end": "2026-11-20T08:59:00Z"
+            }
+          ]
+        },
+        {
+          "observed_at": "2026-11-20T08:58:17.471+00:00",
+          "city": "Rabat",
+          "available": true,
+          "recommendations": [
+            {
+              "city": "Rabat",
+              "route": "Navette C",
+              "available_seats": 300,
+              "travel_minutes": 15,
+              "reason": "Pression 675%; priorité à la capacité disponible par minute de trajet.",
+              "status": "simulation_only"
+            }
+          ],
+          "alerts": [
+            {
+              "source": "transit_validation",
+              "pressure": 6.7531578947368,
+              "event_count": 12831,
+              "window_start": "2026-11-20T08:58:00Z",
+              "window_end": "2026-11-20T08:59:00Z"
+            },
+            {
+              "source": "stadium_access",
+              "pressure": 11.240714285714,
+              "event_count": 15737,
+              "window_start": "2026-11-20T08:58:00Z",
+              "window_end": "2026-11-20T08:59:00Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "status": "completed",
+  "finished_at": "2026-11-20T09:05:12.104+00:00",
+  "batched_spike": {
+    "started_at": "2026-11-20T09:02:40.227+00:00",
+    "finished_at": "2026-11-20T09:05:12.104+00:00",
+    "producer_exit_code": 0,
+    "producer": {
+      "run_id": "c78aa95dec7d401487770a1c5f1a3ece",
+      "started_at": "2026-11-20T09:02:41.380+00:00",
+      "finished_at": "2026-11-20T09:03:11.375+00:00",
+      "rate_requested": 51000,
+      "duration_requested": 30,
+      "sent": 1530000,
+      "acknowledged": 1530000,
+      "failed": 0,
+      "pending": 0,
+      "elapsed_s": 29.995539860999997,
+      "observed_rate": 51007.58336372855
+    },
+    "offsets_before": {
+      "stadium-access": 2837781,
+      "transit-validations": 2322219,
+      "worldcup-invalid": 0
+    },
+    "offsets_after": {
+      "stadium-access": 3677666,
+      "transit-validations": 3012334,
+      "worldcup-invalid": 0
+    },
+    "processed_at_producer_finish": 31620,
+    "processed_after_drain": 1530000,
+    "drain_seconds": 120.581,
+    "samples": [
+      {
+        "observed_at": "2026-11-20T09:02:40.228+00:00",
+        "kafka_offsets": {
+          "stadium-access": 2837781,
+          "transit-validations": 2322219,
+          "worldcup-invalid": 0
+        },
+        "processed": 0
+      },
+      {
+        "observed_at": "2026-11-20T09:02:45.240+00:00",
+        "kafka_offsets": {
+          "stadium-access": 2945298,
+          "transit-validations": 2410994,
+          "worldcup-invalid": 0
+        },
+        "processed": 0
+      },
+      {
+        "observed_at": "2026-11-20T09:02:50.268+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3086351,
+          "transit-validations": 2526529,
+          "worldcup-invalid": 0
+        },
+        "processed": 0
+      },
+      {
+        "observed_at": "2026-11-20T09:02:55.298+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3226903,
+          "transit-validations": 2642924,
+          "worldcup-invalid": 0
+        },
+        "processed": 0
+      },
+      {
+        "observed_at": "2026-11-20T09:03:00.329+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3368574,
+          "transit-validations": 2757913,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:05.366+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3509215,
+          "transit-validations": 2873765,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:10.401+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3649751,
+          "transit-validations": 2990172,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:11.525+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:16.551+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:21.564+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:26.607+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:31.620+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:36.654+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:41.668+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:46.690+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:51.723+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:03:56.740+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:04:01.763+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:04:06.791+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:04:11.812+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:04:16.835+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 31620
+      },
+      {
+        "observed_at": "2026-11-20T09:04:21.844+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:26.871+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:31.880+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:36.905+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:41.933+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:46.962+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:51.973+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:04:56.984+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:05:02.008+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      },
+      {
+        "observed_at": "2026-11-20T09:05:07.053+00:00",
+        "kafka_offsets": {
+          "stadium-access": 3677666,
+          "transit-validations": 3012334,
+          "worldcup-invalid": 0
+        },
+        "processed": 742560
+      }
+    ],
+    "recommendations_during_offer": [
+      {
+        "observed_at": "2026-11-20T09:02:56.014+00:00",
+        "city": "Casablanca",
+        "available": true,
+        "recommendations": [
+          {
+            "city": "Casablanca",
+            "route": "Navette A",
+            "available_seats": 400,
+            "travel_minutes": 18,
+            "reason": "Pression 299%; priorité à la capacité disponible par minute de trajet.",
+            "status": "simulation_only"
+          }
+        ],
+        "alerts": [
+          {
+            "source": "transit_validation",
+            "pressure": 2.9891666666667,
+            "event_count": 7174,
+            "window_start": "2026-11-20T09:02:40Z",
+            "window_end": "2026-11-20T09:03:40Z"
+          },
+          {
+            "source": "stadium_access",
+            "pressure": 4.7572222222222,
+            "event_count": 8563,
+            "window_start": "2026-11-20T09:02:40Z",
+            "window_end": "2026-11-20T09:03:40Z"
+          }
+        ]
+      },
+      {
+        "observed_at": "2026-11-20T09:02:56.012+00:00",
+        "city": "Rabat",
+        "available": true,
+        "recommendations": [
+          {
+            "city": "Rabat",
+            "route": "Navette C",
+            "available_seats": 300,
+            "travel_minutes": 15,
+            "reason": "Pression 628%; priorité à la capacité disponible par minute de trajet.",
+            "status": "simulation_only"
+          }
+        ],
+        "alerts": [
+          {
+            "source": "stadium_access",
+            "pressure": 6.2842857142857,
+            "event_count": 8798,
+            "window_start": "2026-11-20T09:02:40Z",
+            "window_end": "2026-11-20T09:03:40Z"
+          },
+          {
+            "source": "transit_validation",
+            "pressure": 3.7289473684211,
+            "event_count": 7085,
+            "window_start": "2026-11-20T09:02:40Z",
+            "window_end": "2026-11-20T09:03:40Z"
+          }
+        ]
+      }
+    ]
+  },
+  "environment_notes": [
+    "Intel Core i5-10300H, 4 cœurs, 15,4 Gio de RAM. Spark 4.0.1 en local[4], tas de 3 Gio, 12 partitions de mélange et un déclenchement toutes les 2 s.",
+    "Kafka 4.3.1 sur un broker avec 12 partitions par topic et un facteur de réplication de 1. Redis 8.8.3 et FastAPI 0.165.0 sur la même machine."
+  ],
+  "conclusion": "La cible de 50 000 événements/s échoue de bout en bout sur cette pile locale. Au palier nominal, le producteur standard a fourni 15 811/s et Spark a finalisé 6 500/s pendant l'émission.",
+  "observations": {
+    "Pointe par lots sur 30 secondes": [
+      "Kafka a accusé réception de 1 530 000 événements à 51 008/s. Spark en avait finalisé 31 620 à l'arrêt de l'émission. Il restait 1 498 380 événements à traiter. Le compteur a atteint 1 530 000 après 121 s de vidange."
+    ],
+    "Recommandations de navettes": [
+      "Pendant cette pointe, FastAPI a publié Navette A à Casablanca et Navette C à Rabat sur /ws avec des pressions supérieures au seuil de 85 %. Le prototype publie une recommandation simulée. La commande de flotte reste à implémenter."
+    ]
+  }
+}

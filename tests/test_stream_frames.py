@@ -84,3 +84,46 @@ def test_hotel_validation(spark):
     )
     assert valid.count() == 1
     assert [row.invalid_reason for row in invalid.collect()] == ["rooms"]
+
+
+def test_combined_rejections_include_invalid_calendar_dates(spark):
+    from spark_worldcup_traffic import reject_records
+
+    reference = load_reference()
+    start = datetime(2030, 6, 15, tzinfo=timezone.utc)
+    event = next(crowd_events(reference, count=1, seed=1, run_id="test", timestamp=start)).to_mapping()
+    hotel = next(hotel_snapshots(reference, seed=2, run_id="test", timestamp=start)).to_mapping()
+    raw = raw_frame(
+        spark,
+        [
+            ("stadium-access", event | {"source": "stadium_access", "action": "gate_checkin", "timestamp": "2030-02-30T00:00:00Z"}),
+            ("hotel-occupancy", hotel | {"timestamp": "2030-02-30T00:00:00Z"}),
+            ("hotel-occupancy", hotel),
+        ],
+    )
+    assert {(row.topic, row.invalid_reason) for row in reject_records(raw, reference).collect()} == {
+        ("stadium-access", "timestamp"), ("hotel-occupancy", "timestamp"),
+    }
+
+
+def test_crowd_aggregation_retains_sliding_windows_and_venue_totals(spark):
+    from spark_worldcup_traffic import crowd_aggregates
+    from worldcup.config import Settings
+
+    start = datetime(2030, 6, 15, 0, 0, 16, tzinfo=timezone.utc)
+    batch = spark.createDataFrame(
+        [
+            ("Rabat", None, "transit_validation", "cell-1", start),
+            ("Rabat", "", "transit_validation", "cell-1", start),
+            ("Rabat", "", "transit_validation", "cell-2", start),
+        ],
+        "city string, venue string, source string, h3_cell string, event_time timestamp",
+    )
+    rows = crowd_aggregates(batch, Settings(window_duration="20 seconds", window_slide="10 seconds")).collect()
+    counts = {(row.kind, row.h3_cell, row.window.start.second): row.event_count for row in rows}
+    assert counts == {
+        ("cell", "cell-1", 0): 2, ("cell", "cell-1", 10): 2,
+        ("cell", "cell-2", 0): 1, ("cell", "cell-2", 10): 1,
+        ("venue", "", 0): 3, ("venue", "", 10): 3,
+    }
+    assert all(row.venue == "" for row in rows)

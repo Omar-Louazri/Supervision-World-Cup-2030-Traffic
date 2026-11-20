@@ -18,7 +18,7 @@ Open **Notes de présentation / Presenter notes** for a bilingual speaking guide
 
 ## Three-slide presentation
 
-Open [dist/slides.html](dist/slides.html) directly in a browser, including offline. It contains exactly three French slides: the mobility problem, the repository architecture, and the illustrative Rabat scenario. OpenAI Sans and the README's original `docs/architecture.png` are embedded in the file. Arrow keys navigate, **F** opens fullscreen, and clicking the architecture image enlarges it. **PDF / Imprimer** prints all three slides.
+Open the deck directly in a browser, including offline. Its three French slides cover the mobility problem, the repository architecture, and the illustrative Rabat scenario. The file embeds OpenAI Sans and the architecture image from the repository README. Arrow keys navigate, **F** opens fullscreen, and clicking the architecture image enlarges it. **PDF / Imprimer** prints all three slides. [Three-slide presentation](dist/slides.html)
 
 The public presentation is at https://rabat-flow-build-day.zippyhake256.chatgpt.site/slides.html. Regenerate the standalone file from the main repository checkout with `python pitch/scripts/build_slides.py`; the source is `pitch/slides.template.html`. The offline demo ZIP also includes the deck.
 
@@ -26,7 +26,7 @@ The public presentation is at https://rabat-flow-build-day.zippyhake256.chatgpt.
 
 - The city is an illustrative Rabat model with approximate landmark locations. It is not an operational routing map.
 - Vehicles, demand, incidents, recommendations, and KPIs are simulated. No real operator feed or OpenAI inference is connected.
-- The existing Python Kafka/Spark pipeline is the implementation foundation; the pipeline diagram in this demo describes that architecture, not a live connection.
+- The architecture slide shows the separate live dashboard, where FastAPI pushes Redis-backed views over `/ws`. The Rabat Flow simulation runs on its own.
 - OpenAI Sans is loaded locally from OpenAI's public CDN. The palette is Build Day inspired; this independent project does not imply OpenAI endorsement.
 - Three.js 0.170.0 and OrbitControls are vendored locally under the MIT license. All runtime assets are local for reliable presentations.
 

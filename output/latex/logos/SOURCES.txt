@@ -1,0 +1,14 @@
+Logos institutionnels du rapport
+
+ENSAM Rabat
+Site officiel : https://ensam.um5.ac.ma/
+Image : https://ensam.um5.ac.ma/sites/default/files/logo%20ensam%20um5-white%202.png
+Fichier conservé inchangé : ensam-rabat-officiel.png
+Le document LaTeX isole à l'affichage le logo ENSAM de cette image composite.
+
+Université Mohammed V de Rabat
+Page officielle des logos : https://www.um5.ac.ma/um5/node/UM5logo
+Image : https://www.um5.ac.ma/um5/sites/default/files/um5-wide.png
+Fichier conservé inchangé : um5-rabat-officiel.png
+
+Les couleurs et les proportions des logos sont conservées.

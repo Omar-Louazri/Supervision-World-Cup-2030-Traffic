@@ -79,3 +79,53 @@ def test_hysteresis_keeps_route_and_missing_data_clears_alert(monkeypatch):
     monkeypatch.setattr("app_worldcup_control.recent_aggregates", lambda _client, _kind: [])
     missing = build_view(None, reference, city["name"], view["alert_state"], Settings())
     assert identity not in missing["alert_state"]
+
+
+def test_websocket_subscriptions_and_push_updates(monkeypatch):
+    """Exercise the ASGI entry point with in-memory channels and bounded reads."""
+    import asyncio
+    import json
+    from types import SimpleNamespace
+
+    from app_worldcup_control import create_app
+
+    monkeypatch.delenv("WORLDCUP_PRESENTATION_STAGE", raising=False)
+
+    async def check():
+        app = create_app(Settings())
+        cities = ["Rabat", "Casablanca"]
+        views = {city: {"type": "view", "city": city, "available": True, "view": {}} for city in cities}
+        app.state.feed = SimpleNamespace(cities=cities, views=views, listeners=set(), stage=None)
+        incoming, outgoing = asyncio.Queue(), asyncio.Queue()
+        scope = {"type": "websocket", "asgi": {"version": "3.0", "spec_version": "2.4"},
+                 "path": "/ws", "scheme": "ws", "query_string": b"", "headers": [], "root_path": ""}
+        await incoming.put({"type": "websocket.connect"})
+        server = asyncio.create_task(app(scope, incoming.get, outgoing.put))
+
+        async def read():
+            packet = await asyncio.wait_for(outgoing.get(), 2)
+            return json.loads(packet["text"])
+
+        try:
+            assert (await asyncio.wait_for(outgoing.get(), 2))["type"] == "websocket.accept"
+            assert (await read())["cities"] == cities
+            assert await read() == views["Rabat"]
+            for city in ["Casablanca", "Rabat", "Rabat"]:
+                await incoming.put({"type": "websocket.receive", "text": json.dumps({"type": "subscribe", "city": city})})
+                assert await read() == views[city]
+
+            views["Rabat"] = {**views["Rabat"], "view": {"updated": True}}
+            for listener in app.state.feed.listeners:
+                listener.set()
+            assert (await read())["view"] == {"updated": True}
+            # A notification for an unchanged snapshot must leave the browser idle.
+            for listener in app.state.feed.listeners:
+                listener.set()
+            await asyncio.sleep(0)
+            assert outgoing.empty()
+        finally:
+            await incoming.put({"type": "websocket.disconnect", "code": 1000})
+            await asyncio.wait_for(server, 2)
+        assert not app.state.feed.listeners
+
+    asyncio.run(check())

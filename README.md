@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Real-time visibility into venue access, transit activity, and hotel occupancy.</strong><br>
-  A streaming operations dashboard built with Kafka, Spark, H3, Redis, Dash, and Mapbox.
+  A streaming operations dashboard built with Kafka, Spark, H3, Redis, FastAPI, and Mapbox.
 </p>
 
 <p align="center">
@@ -19,16 +19,16 @@
   <img alt="Apache Spark" src="https://img.shields.io/badge/Apache_Spark-4.0.1-E25A1C?logo=apachespark&amp;logoColor=white">
   <img alt="Redis" src="https://img.shields.io/badge/Redis-8.8.3-DC382D?logo=redis&amp;logoColor=white">
   <img alt="H3" src="https://img.shields.io/badge/H3-Geospatial-1E6E9C">
-  <img alt="Plotly Dash" src="https://img.shields.io/badge/Plotly-Dash-3E4B6D?logo=plotly&amp;logoColor=white">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-WebSocket-009688?logo=fastapi&amp;logoColor=white">
   <img alt="Mapbox" src="https://img.shields.io/badge/Mapbox-3D_Map-000000?logo=mapbox&amp;logoColor=white">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&amp;logoColor=white">
 </p>
 
 ## Architecture
 
-![Architecture of the World Cup 2030 traffic supervision pipeline: Python producer, Kafka, Spark Structured Streaming, Redis, and Dash with Mapbox.](docs/architecture.png)
+![Architecture of the World Cup 2030 traffic supervision pipeline from Python through Kafka, Spark, and Redis to the FastAPI WebSocket and Mapbox dashboard.](docs/architecture.png)
 
-The pipeline ingests stadium access, transit validation, and hotel occupancy events. Spark validates records, writes invalid messages to `worldcup-invalid`, and publishes recent aggregates to Redis. Dash reads those aggregates to render the operations view.
+The pipeline ingests stadium access, transit validation, and hotel occupancy events. Spark validates records, sends rejected records to `worldcup-invalid`, and stores recent aggregates in Redis. It sends Redis Pub/Sub notifications after committing crowd micro-batches or accepting hotel updates. FastAPI reads the current Redis state and pushes the operations view to the browser over `/ws`. During presentations it also watches the stage status file and pushes progress through the same connection.
 
 [Open the editable Excalidraw diagram](docs/architecture.excalidraw) · [Read the architecture and data contracts](docs/architecture.md)
 
@@ -52,7 +52,7 @@ Open [http://localhost:8080](http://localhost:8080). The existing Kafka/Spark ap
 
 The pitch supports **French / English**, a 60-second speaking guide, and a downloadable offline kit. A separate [Rabat road producer](docs/road-data.md) prepares the first TomTom-to-Kafka source; its fixture mode works without credentials. Live collection requires a locally configured `TOMTOM_API_KEY`.
 
-The [three-slide French HTML presentation](pitch/dist/slides.html) embeds OpenAI Sans and the original Excalidraw architecture image. It opens directly in a browser and works offline.
+The [three-slide French HTML presentation](pitch/dist/slides.html) embeds OpenAI Sans and the repository's Excalidraw architecture image. It opens directly in a browser and works offline.
 
 ## Quick start
 
@@ -88,9 +88,22 @@ uv run python app_worldcup_control.py
 uv run python worldcup_event_producer.py --count 10000 --rate 500 --seed 2030
 ```
 
-Open [http://127.0.0.1:8050/](http://127.0.0.1:8050/). The [`/health`](http://127.0.0.1:8050/health) endpoint checks Redis connectivity.
+Open the dashboard in a browser. FastAPI serves the page and its assets over HTTP. The browser loads the initial view and receives live updates over `/ws` on the same host. [Local dashboard](http://127.0.0.1:8050/)
 
 Configuration is read from environment variables; [`.env.example`](.env.example) lists the supported settings. A `.env` file is not loaded automatically. To inspect generated events without Kafka, run `uv run python worldcup_event_producer.py --sink stdout --count 5`. To process existing Kafka offsets once, use `uv run python spark_worldcup_traffic.py --available-now` with a fresh checkpoint.
+
+If Redis cannot start because port `6379` is already in use, set `REDIS_PORT=6380` and `REDIS_URL=redis://localhost:6380/0` in a local `.env` file. Docker Compose reads this file automatically; rerun `docker compose up -d redis`. For the Python services, load the same settings with `uv run --env-file .env python ...`, replacing `...` with the script and arguments shown above.
+
+## Run the presentation
+
+From Bash with Docker running and `uv` and Java installed:
+
+```bash
+./present.sh upgrade   # Refresh the project's pinned service images and Python dependencies
+./present.sh           # Start the dashboard, then choose 1, 20, 100, 500, or all
+```
+
+Open the dashboard on the projected screen and use the terminal to send each burst through Kafka, Spark, and Redis. The default Three.js view plots the latest Redis-confirmed burst at a fictional Rabat stadium and transit stop. Turn on the H3 overlay to show density. Mapbox is also available with a configured token. Use `./present.sh all` for an automatic rehearsal or `./present.sh 500` for a single stage. The dashboard links to the French slides and the separate Rabat Flow simulation. [Live dashboard](http://localhost:8050/) · [Presentation guide](docs/presentation-ux.md)
 
 ## Testing and performance
 
@@ -105,7 +118,7 @@ uv run python scripts/load_test.py --rates 1000 10000 25000 50000 --duration 60
 uv run python scripts/render_load_report.py artifacts/load-results.json
 ```
 
-**Performance status:** 50,000 events/s is a target, not a verified result. The current [load report](load_testing_report.pdf) records a failed Kafka preflight and contains no completed throughput stage. The runner counts events after Spark micro-batches; it does not measure per-event latency, system resource use, or browser rendering. Reproducible end-to-end measurements remain on the [roadmap](docs/implementation-plan.md).
+The November 20 local benchmark fell short of 50,000 events/s end to end. In the 30-second batched trial, Kafka acknowledged about 51,008 events/s. Spark had finished writing 31,620 of the 1,530,000 events to Redis when publishing ended. The dashboard published simulated shuttle recommendations over `/ws` during the trial. [Load report](load_testing_report.pdf) · [Raw measurements](docs/load-test-results.json)
 
 ## Repository map
 
@@ -113,7 +126,7 @@ uv run python scripts/render_load_report.py artifacts/load-results.json
 | --- | --- |
 | [`worldcup_event_producer.py`](worldcup_event_producer.py) | Publishes synthetic events to Kafka or stdout. |
 | [`spark_worldcup_traffic.py`](spark_worldcup_traffic.py) | Validates streams and writes H3, venue, and hotel state to Redis. |
-| [`app_worldcup_control.py`](app_worldcup_control.py) | Serves the Dash dashboard and Mapbox view. |
+| [`app_worldcup_control.py`](app_worldcup_control.py) | Serves the dashboard, static assets, and `/ws` WebSocket with FastAPI. |
 | [`worldcup/`](worldcup/) | Shared contracts, configuration, analytics, reference data access, and Redis storage. |
 | [`scripts/`](scripts/) | Topic setup, load runner, and report generation. |
 | [`tests/`](tests/) | Tests for contracts, streaming frames, analytics, Redis, and the dashboard. |

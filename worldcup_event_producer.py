@@ -3,51 +3,18 @@
 from __future__ import annotations
 
 import argparse
+from itertools import islice
 import json
+import math
 import sys
 import time
 from uuid import uuid4
 
 from worldcup.config import Settings
 from worldcup.contracts import HOTEL_TOPIC, TOPICS
-from worldcup.producer import crowd_events, hotel_snapshots
+from worldcup.kafka import KafkaSink
+from worldcup.producer import crowd_events, crowd_payloads, hotel_snapshots
 from worldcup.reference import load_reference
-
-
-class KafkaSink:
-    def __init__(self, bootstrap_servers: str):
-        from confluent_kafka import Producer
-
-        self._producer = Producer(
-            {
-                "bootstrap.servers": bootstrap_servers,
-                "enable.idempotence": True,
-                "acks": "all",
-                "compression.type": "lz4",
-                "linger.ms": 20,
-            }
-        )
-        self.failed = 0
-
-    def _delivered(self, error, _message) -> None:
-        if error is not None:
-            self.failed += 1
-            print(f"Kafka delivery failed: {error}", file=sys.stderr)
-
-    def send(self, topic: str, item: dict, *, key: str | None = None) -> None:
-        payload = json.dumps(item, separators=(",", ":")).encode("utf-8")
-        while True:
-            try:
-                self._producer.produce(topic, value=payload, key=key.encode("utf-8") if key is not None else None, on_delivery=self._delivered)
-                break
-            except BufferError:
-                self._producer.poll(0.1)
-        self._producer.poll(0)
-
-    def close(self) -> None:
-        remaining = self._producer.flush(30)
-        if remaining or self.failed:
-            raise RuntimeError(f"Kafka delivery incomplete: {remaining} pending, {self.failed} failed")
 
 
 class StdoutSink:
@@ -68,8 +35,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--without-hotels", action="store_true")
     parser.add_argument("--hotel-interval", type=float, default=60, help="Seconds between synthetic hotel snapshots")
     args = parser.parse_args(argv)
-    if args.count < 0 or args.rate <= 0 or args.hotel_interval <= 0:
-        parser.error("count must be nonnegative; rate and hotel interval must be positive")
+    if args.count < 0 or any(not math.isfinite(value) or value <= 0 for value in (args.rate, args.hotel_interval)):
+        parser.error("Count must be nonnegative and rate and hotel interval must be finite and positive")
 
     settings = Settings.from_env()
     reference = load_reference(settings.reference_path)
@@ -77,14 +44,19 @@ def main(argv: list[str] | None = None) -> int:
     sink = KafkaSink(settings.kafka_bootstrap_servers) if args.sink == "kafka" else StdoutSink()
     start = time.monotonic()
     sent = 0
+    hotels_sent = 0
     last_hotel_at = start
     hotel_round = 0
+    batch_interval = 0.02 if args.without_hotels else min(0.02, args.hotel_interval)
+    chunk_size = min(1024, max(1, int(args.rate * batch_interval))) if args.sink == "kafka" else 1
+    generation = dict(count=args.count, seed=args.seed, run_id=run_id)
+    events = crowd_payloads(reference, **generation) if args.sink == "kafka" else crowd_events(reference, **generation)
     try:
         if not args.without_hotels:
             for snapshot in hotel_snapshots(reference, seed=args.seed, run_id=run_id):
                 sink.send(HOTEL_TOPIC, snapshot.to_mapping())
-        events = crowd_events(reference, count=args.count, seed=args.seed, run_id=run_id)
-        for _ in range(args.count):
+                hotels_sent += 1
+        while sent < args.count:
             target = sent / args.rate
             delay = target - (time.monotonic() - start)
             if delay > 0:
@@ -93,14 +65,24 @@ def main(argv: list[str] | None = None) -> int:
                 hotel_round += 1
                 for snapshot in hotel_snapshots(reference, seed=args.seed + hotel_round, run_id=f"{run_id}-h{hotel_round}"):
                     sink.send(HOTEL_TOPIC, snapshot.to_mapping())
+                    hotels_sent += 1
                 last_hotel_at = time.monotonic()
-            event = next(events)
-            sink.send(TOPICS[event.source], event.to_mapping())
-            sent += 1
+            if args.sink == "kafka":
+                by_topic: dict[str, list[bytes]] = {}
+                for topic, payload in islice(events, chunk_size):
+                    by_topic.setdefault(topic, []).append(payload)
+                sent += sum(sink.send_payloads(topic, payloads) for topic, payloads in by_topic.items())
+            else:
+                event = next(events)
+                sink.send(TOPICS[event.source], event.to_mapping())
+                sent += 1
     finally:
         sink.close()
     elapsed = max(time.monotonic() - start, 1e-9)
-    print(json.dumps({"run_id": run_id, "sent": sent, "elapsed_s": elapsed, "observed_rate": sent / elapsed}), file=sys.stderr)
+    summary = {"run_id": run_id, "sent": sent, "elapsed_s": elapsed, "observed_rate": sent / elapsed}
+    if args.sink == "kafka":
+        summary.update(acknowledged=sink.acknowledged - hotels_sent, hotel_acknowledged=hotels_sent)
+    print(json.dumps(summary), file=sys.stderr)
     return 0
 
 
